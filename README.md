@@ -1,179 +1,311 @@
 # Hot Shot
 
-A simple easy to go solution for creating a REST API with every JavaScript
-Runtime. Built top of [Hono](https://github.com/honojs/hono) and
-[Deno](https://deno.land).
+## Build Fast, Ship Faster
 
-## Features
+Welcome to **Hot Shot**, a meta-framework built on top of [Hono](https://honojs.dev/), inspired by the best features of
+AdonisJS and NestJS. Hot Shot provides a structured and efficient way to build scalable web applications that can run on
+multiple JavaScript runtimes, including Node.js, Deno, and Bun.
 
-- 🔥 Simple and Easy to use
-- 🔥 Built on top of [Hono](https://github.com/honojs/hono) and
-  [Deno](https://deno.land)
-- 🔥 Supports every JavaScript Runtime
-- 🔥 Supports every HTTP Method
-- 🔥 Supports every HTTP Status Code
-- 🔥 Supports every Content Type
-- 🔥 Supports every Middleware
-- 🔥 Have better error handling
-- 🔥 Have better response handling
-- 🔥 Best for beginners
-- 🔥 Deno focused
-- 🔥 Built for low overhead
+## Introduction
 
-## Installation
+Hot Shot leverages the simplicity and performance of Hono while offering a higher-level abstraction for organizing your
+application's components. By combining concepts from AdonisJS and NestJS, Hot Shot promotes a clean architecture using
+classes for controllers, routes, and middleware, making your codebase modular and maintainable.
+
+## Key Features
+
+- **Modular Routing**: Organize routes into classes for better structure and readability.
+- **Middleware Support**: Easily integrate middleware for authentication, validation, and more.
+- **Controller-Based Design**: Encapsulate request handling logic within controllers.
+- **Inspired by AdonisJS and NestJS**: Familiar patterns for developers coming from these frameworks.
+- **Multi-Runtime Support**: Run your applications seamlessly on Node.js, Deno, and Bun.
+
+## Getting Started
+
+### Installation
+
+Install Hot Shot via npm:
 
 ```bash
-# Using Deno
-deno add jsr:@a4arpon/hotshot
 
-# Using NPM
+# NPM Installation
 npx jsr add @a4arpon/hotshot
 
-# Using Bun
+# Bun Installation
 bunx jsr add @a4arpon/hotshot
+
+# Deno Installation
+deno add jsr:@a4arpon/hotshot
+
 ```
 
-## Usage
+### Creating Routes
 
-### Example
+Hot Shot encourages organizing your routes into classes, each representing a module or feature of your application.
 
-#### Router Module
+#### Example: Creating a User Routes Class
 
-The router module is used to define the routes of the API. It takes an object as
-an argument with the following properties:
+```typescript
+export class UserRoutes {
+    public readonly routes: Hono;
+    private readonly userController: UserController;
 
-- `basePath`: The base path for the API. It is used to prefix all routes with a
-  common path. For example, if the base path is `/api`, all routes will have the
-  prefix `/api`.
-- `routes`: An array of route objects, each containing the following properties:
-    - `method`: The HTTP method to use for the route. It can be one of the
-      following values:
-        - `GET`
-        - `POST`
-        - `PUT`
-        - `DELETE`
-        - `PATCH`
-    - `path`: The path of the route, which can include parameters.
-    - `controller`: The controller function for the route.
-
-**Inner Works** : In the router module the controller is executing in the async
-function and the response is returning in the same function. But if any error
-occurs in the controller function, the error is catched and the response is
-returned with the error message.
-
-```ts
-import {router} from "@a4arpon/hotshot"
-import {userController} from "./controllers/user.ts"
-
-function appRoutes() {
-    return router(
-        {
-            basePath: "/api",
+    constructor() {
+        this.userController = new UserController();
+        this.routes = router({
+            basePath: "users",
             routes: [
                 {
+                    path: "/register",
+                    method: "POST",
+                    controller: this.userController.register,
+                },
+                {
+                    path: "/login",
+                    method: "POST",
+                    controller: this.userController.login,
+                },
+                {
+                    path: "/profile",
                     method: "GET",
-                    path: "/",
-                    controller: userController,
+                    controller: this.userController.getProfile,
+                    middlewares: [AuthGuard],
                 },
             ],
-        },
-    )
+        });
+    }
 }
 ```
 
-#### Controller Module
+- **`basePath`**: Sets the base URL for all routes in the class.
+- **`routes`**: An array of route definitions with methods, paths, controllers, and optional middleware.
 
-In the userController function, we first check if the user exists in the
-database. If the user does not exist, we throw a new HTTPException with the
-appropriate status code and message. If the user exists, we return a response
-with the user data. The response function takes a message, data, and extra meta
-data as arguments.
+### Creating Controllers
 
-```ts
-import {response} from "@a4arpon/hotshot"
+Controllers contain the business logic for handling requests and generating responses.
 
-export const userController = (ctx: Context) => {
-    const user = null
+#### Example: Creating a User Controller
 
-    if (!user) {
-        throw new HTTPException(HTTPStatus.NotFound, {
-            message: "User not found",
-        })
+```typescript
+export class UserController {
+    async register(ctx: Context): Promise<ApiResponse> {
+        const data = await ctx.req.json();
+        // Logic to register a user
+        return response("User registered successfully", {userId: 1});
     }
 
-    return response("User Found", user, {
-        cached: true, // Extra meta data information for the request.
-    })
+    async login(ctx: Context): Promise<ApiResponse> {
+        const data = await ctx.req.json();
+        // Logic to authenticate a user
+        return response("User logged in successfully", {token: "jwt-token"});
+    }
+
+    async getProfile(ctx: Context): Promise<ApiResponse> {
+        // Logic to retrieve user profile
+        return response("User profile retrieved", {name: "John Doe"});
+    }
 }
 ```
 
-### Router Function
+- **Controller Methods**: Asynchronous functions that handle specific endpoints.
 
-The `router` function is used to define the routes of the API. It takes an
-object as an argument with the following properties:
+### Implementing Middleware
 
-- `routes`: An array of route objects, each containing the following properties:
-    - `method`: The HTTP method to use for the route. It can be one of the
-      following values:
-        - `GET`
-        - `POST`
-        - `PUT`
-        - `DELETE`
-        - `PATCH`
-    - `path`: The path of the route, which can include parameters.
-    - `controller`: The controller function for the route. It takes a `Context`
-      object as an argument and returns a `Promise` that resolves to a `Response`
-      object.
-    - `middlewares`: An array of middleware functions to be applied to the route.
-      Each middleware function takes a `Context` object as an argument and returns
-      a `Promise` that resolves to a `Response` object.
-- `basePath`: The base path for the API. It is used to prefix all routes with a
-  common path. For example, if the base path is `/api`, all routes will have the
-  prefix `/api`.
-- `routeGuard`: A middleware function that is applied to all routes. It takes a
-  `Context` object as an argument and returns a `Promise` that resolves to a
-  `Response` object.
+Middleware functions perform actions before or after route handlers, such as authentication or input validation.
 
-```ts
-import {router} from "@a4arpon/hotshot"
+#### Example: Creating an Authentication Guard
 
-const app = router({
-    routes: [
-        {
-            method: "GET",
-            path: "/",
-            controller: async () => {
-                return response("Hello World")
-            },
-        },
-    ],
-})
+```typescript
+export const AuthGuard = async (ctx: Context, next: () => Promise<void>) => {
+    try {
+        const authHeader = ctx.req.header("Authorization");
+        const token = authHeader?.split(" ")[1];
+
+        if (!token) {
+            ctx.status(401);
+            return ctx.json(response("Unauthorized access", null, {}, false));
+        }
+
+        // Verify token (implementation depends on your auth strategy)
+        const user = verifyToken(token);
+
+        if (!user) {
+            ctx.status(401);
+            return ctx.json(response("Invalid token", null, {}, false));
+        }
+
+        ctx.user = user;
+        await next();
+    } catch (error) {
+        ctx.status(500);
+        return ctx.json(response("Server error", null, {}, false));
+    }
+};
 ```
 
-### HTTPStatus
+- **Middleware Functions**: Take `ctx` and `next` as arguments and can modify the context or control the flow.
 
-The `HTTPStatus` object contains all the HTTP status codes that can be used in
-the `response` function. It is an object with the following properties:
+### Combining Routes
 
-- `OK`: The status code for a successful response.
-- `MovedPermanently`: The status code for a redirection response.
-- `BadRequest`: The status code for a client error response.
-- `Unauthorized`: The status code for a client error response.
-- `Forbidden`: The status code for a client error response.
-- `NotFound`: The status code for a client error response.
-- `Conflict`: The status code for a client error response.
-- `InternalServerError`: The status code for a server error response.
-- `ServiceUnavailable`: The status code for a server error response.
+Use `routerFactory` to combine multiple route classes into a single application route.
 
-### safeAsync Function
+#### Example: Combining Multiple Route Classes
 
-The `safeAsync` function is used to handle errors in the controller functions.
-It takes a function as an argument and executes it in a try-catch block. If an
-error occurs, it returns a response with the appropriate status code and
-message.
+```typescript
+export const applicationRoutes = routerFactory([
+    UserRoutes,
+    ProductRoutes,
+    OrderRoutes,
+]);
+```
 
-**The router function uses this function to handle errors in the controller
-functions.**
+## Utilities and Helpers
+
+### Response Helper
+
+Use the `response` function to create consistent API responses.
+
+#### Example: Using the Response Helper
+
+```typescript
+return response("Operation successful", {data: "Sample data"});
+```
+
+### Middleware Exception Response
+
+Use `middleWareExceptionResponse` to handle exceptions in middleware.
+
+#### Example: Handling Middleware Exceptions
+
+```typescript
+export const ExampleMiddleware = async (ctx: Context, next: () => Promise<void>) => {
+    try {
+        // Middleware logic
+        await next();
+    } catch (error) {
+        return middleWareExceptionResponse(ctx, error);
+    }
+};
+```
+
+## Full Usage Example
+
+Let's build a simple blog module with posts and comments.
+
+### Step 1: Create Controllers
+
+```typescript
+export class PostsController {
+    async createPost(ctx: Context): Promise<ApiResponse> {
+        const data = await ctx.req.json();
+        // Logic to create a post
+        return response("Post created", {postId: 1});
+    }
+
+    async getPost(ctx: Context): Promise<ApiResponse> {
+        const {postId} = ctx.req.param();
+        // Logic to get a post
+        return response("Post retrieved", {postId, title: "Sample Post"});
+    }
+}
+
+export class CommentsController {
+    async addComment(ctx: Context): Promise<ApiResponse> {
+        const data = await ctx.req.json();
+        // Logic to add a comment
+        return response("Comment added", {commentId: 1});
+    }
+}
+```
+
+### Step 2: Define Route Classes
+
+```typescript
+export class PostsRoutes {
+    public readonly routes: Hono;
+    private readonly postsController: PostsController;
+
+    constructor() {
+        this.postsController = new PostsController();
+        this.routes = router({
+            basePath: "posts",
+            routes: [
+                {
+                    path: "/",
+                    method: "POST",
+                    controller: this.postsController.createPost,
+                    middlewares: [AuthGuard],
+                },
+                {
+                    path: "/:postId",
+                    method: "GET",
+                    controller: this.postsController.getPost,
+                },
+            ],
+        });
+    }
+}
+
+export class CommentsRoutes {
+    public readonly routes: Hono;
+    private readonly commentsController: CommentsController;
+
+    constructor() {
+        this.commentsController = new CommentsController();
+        this.routes = router({
+            basePath: "comments",
+            routes: [
+                {
+                    path: "/",
+                    method: "POST",
+                    controller: this.commentsController.addComment,
+                    middlewares: [AuthGuard],
+                },
+            ],
+        });
+    }
+}
+```
+
+### Step 3: Combine Routes into Application Routes
+
+```typescript
+export const applicationRoutes = routerFactory([
+    UserRoutes,
+    PostsRoutes,
+    CommentsRoutes,
+]);
+```
+
+### Step 4: Initialize the Application
+
+```typescript
+const app = new Hono();
+
+app.route("/", applicationRoutes);
+
+app.listen(3000, () => {
+    console.log("Blog application is running on http://localhost:3000");
+});
+```
+
+## Best Practices
+
+- **Organize by Feature**: Group related controllers and routes together.
+- **Use Middleware Wisely**: Apply middleware at the route or controller level as needed.
+- **Handle Errors Gracefully**: Use `safeAsync` and consistent error responses.
+- **Keep Controllers Focused**: Controllers should handle request logic, not business logic.
+
+## Conclusion
+
+Hot Shot provides a robust structure for building scalable and maintainable web applications. By following familiar
+patterns and offering utilities to simplify common tasks, it helps you focus on writing clean and efficient code.
+
+Explore the framework and start building your next application with Hot Shot!
+
+---
+
+Feel free to dive deeper into each section and adapt the examples to fit your application's specific needs.
 
 ## Developer Information
 
