@@ -218,7 +218,7 @@ export function routerFactory(routers: Array<RouterConstructor>): Hono {
 |
 */
 
-export function routerContainer(routers: Array<() => Hono>, {basePath}: { basePath?: string }): Hono {
+export function routerContainer({basePath, routers}: { basePath?: string, routers: Array<() => Hono>, }): Hono {
     const containerInstance = new Hono().basePath(basePath ?? "")
 
     for (const router of routers) {
