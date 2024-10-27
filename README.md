@@ -46,15 +46,15 @@ an argument with the following properties:
   common path. For example, if the base path is `/api`, all routes will have the
   prefix `/api`.
 - `routes`: An array of route objects, each containing the following properties:
-  - `method`: The HTTP method to use for the route. It can be one of the
-    following values:
-    - `GET`
-    - `POST`
-    - `PUT`
-    - `DELETE`
-    - `PATCH`
-  - `path`: The path of the route, which can include parameters.
-  - `controller`: The controller function for the route.
+    - `method`: The HTTP method to use for the route. It can be one of the
+      following values:
+        - `GET`
+        - `POST`
+        - `PUT`
+        - `DELETE`
+        - `PATCH`
+    - `path`: The path of the route, which can include parameters.
+    - `controller`: The controller function for the route.
 
 **Inner Works** : In the router module the controller is executing in the async
 function and the response is returning in the same function. But if any error
@@ -62,22 +62,22 @@ occurs in the controller function, the error is catched and the response is
 returned with the error message.
 
 ```ts
-import { router } from "@a4arpon/hotshot"
-import { userController } from "./controllers/user.ts"
+import {router} from "@a4arpon/hotshot"
+import {userController} from "./controllers/user.ts"
 
 function appRoutes() {
-  return router(
-    {
-      basePath: "/api",
-      routes: [
+    return router(
         {
-          method: "GET",
-          path: "/",
-          controller: userController,
+            basePath: "/api",
+            routes: [
+                {
+                    method: "GET",
+                    path: "/",
+                    controller: userController,
+                },
+            ],
         },
-      ],
-    },
-  )
+    )
 }
 ```
 
@@ -90,20 +90,20 @@ with the user data. The response function takes a message, data, and extra meta
 data as arguments.
 
 ```ts
-import { response } from "@a4arpon/hotshot"
+import {response} from "@a4arpon/hotshot"
 
 export const userController = (ctx: Context) => {
-  const user = null
+    const user = null
 
-  if (!user) {
-    throw new HTTPException(HTTPStatus.NotFound, {
-      message: "User not found",
+    if (!user) {
+        throw new HTTPException(HTTPStatus.NotFound, {
+            message: "User not found",
+        })
+    }
+
+    return response("User Found", user, {
+        cached: true, // Extra meta data information for the request.
     })
-  }
-
-  return response("User Found", user, {
-    cached: true, // Extra meta data information for the request.
-  })
 }
 ```
 
@@ -113,20 +113,20 @@ The `router` function is used to define the routes of the API. It takes an
 object as an argument with the following properties:
 
 - `routes`: An array of route objects, each containing the following properties:
-  - `method`: The HTTP method to use for the route. It can be one of the
-    following values:
-    - `GET`
-    - `POST`
-    - `PUT`
-    - `DELETE`
-    - `PATCH`
-  - `path`: The path of the route, which can include parameters.
-  - `controller`: The controller function for the route. It takes a `Context`
-    object as an argument and returns a `Promise` that resolves to a `Response`
-    object.
-  - `middlewares`: An array of middleware functions to be applied to the route.
-    Each middleware function takes a `Context` object as an argument and returns
-    a `Promise` that resolves to a `Response` object.
+    - `method`: The HTTP method to use for the route. It can be one of the
+      following values:
+        - `GET`
+        - `POST`
+        - `PUT`
+        - `DELETE`
+        - `PATCH`
+    - `path`: The path of the route, which can include parameters.
+    - `controller`: The controller function for the route. It takes a `Context`
+      object as an argument and returns a `Promise` that resolves to a `Response`
+      object.
+    - `middlewares`: An array of middleware functions to be applied to the route.
+      Each middleware function takes a `Context` object as an argument and returns
+      a `Promise` that resolves to a `Response` object.
 - `basePath`: The base path for the API. It is used to prefix all routes with a
   common path. For example, if the base path is `/api`, all routes will have the
   prefix `/api`.
@@ -135,18 +135,18 @@ object as an argument with the following properties:
   `Response` object.
 
 ```ts
-import { router } from "@a4arpon/hotshot"
+import {router} from "@a4arpon/hotshot"
 
 const app = router({
-  routes: [
-    {
-      method: "GET",
-      path: "/",
-      controller: async () => {
-        return response("Hello World")
-      },
-    },
-  ],
+    routes: [
+        {
+            method: "GET",
+            path: "/",
+            controller: async () => {
+                return response("Hello World")
+            },
+        },
+    ],
 })
 ```
 
@@ -175,7 +175,6 @@ message.
 **The router function uses this function to handle errors in the controller
 functions.**
 
-
 ## Developer Information
 
 ### Mr Wayne
@@ -188,4 +187,4 @@ functions.**
 
 **Instagram** : [@a4arpon](https://www.instagram.com/a4arpon/)
 
-**Facebook** : [@a4arpon](https://www.facebook.com/a4arpon/)# hot-shot
+**Facebook** : [@a4arpon](https://www.facebook.com/a4arpon/)
