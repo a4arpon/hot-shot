@@ -1,0 +1,18 @@
+{
+  "name": "@a4arpon/hotshot",
+  "version": "0.3.0",
+  "module": "./build/main.js",
+  "type": "module",
+  "bin": {
+    "hotshot": "./build/main.js"
+  },
+  "scripts": {
+    "build": "bun build src/main.ts --outdir ./build --target node --splitting --minify --format esm"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "hono": "^4.6.7"
+  }
+}
