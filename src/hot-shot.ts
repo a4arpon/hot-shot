@@ -18,6 +18,7 @@
 |   - safeAsync : Promise Wrapper
 |   - router : Router Function 🔥
 |   - routerFactory : Router Factory Function 🔥
+|   - routerContainer : Router Container Function 🔥
 */
 
 import {type Context, Hono, type MiddlewareHandler} from "hono"
@@ -73,7 +74,10 @@ export function response(
 /*
   Exception Response Middleware Function 🔥
 */
-export function middleWareExceptionResponse(ctx: Context, e: unknown) {
+export function middleWareExceptionResponse(
+    ctx: Context,
+    e: unknown,
+): Response {
     if (e instanceof Error) {
         ctx.status(HTTPStatus.Unauthorized)
         return ctx.json(response(e.message, null, {}, false))
@@ -91,7 +95,9 @@ export function middleWareExceptionResponse(ctx: Context, e: unknown) {
 |
 */
 
-export const safeAsync = (func: (ctx: Context) => Promise<ApiResponse>) => {
+export const safeAsync = (
+    func: (ctx: Context) => Promise<ApiResponse>,
+): ((ctx: Context) => Promise<Response>) => {
     return async (ctx: Context) => {
         try {
             const response = await func(ctx)
