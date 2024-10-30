@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import {generateControllerFile, generateRouterFile, generateServicesFile} from "./mods-contents.ts";
+import * as vm from "node:vm";
 
 interface HotShotConf {
     projectName: string;
@@ -81,8 +82,14 @@ async function checkProjectType(): Promise<"js" | "ts"> {
     if (!fs.existsSync(configPath)) {
         throw new Error("hotshot.config.js not found.");
     }
-    const configContent = await import(configPath);
-    return configContent.HotshotConf.projectType;
+
+    const configFileContent = await fs.promises.readFile(configPath, "utf8");
+
+    const sandbox = {module: {exports: {}}} as any
+    vm.createContext(sandbox);
+    vm.runInContext(configFileContent, sandbox);
+
+    return sandbox.module.exports.HotshotConf.projectType;
 }
 
 async function checkSrcDirectory(): Promise<boolean> {
