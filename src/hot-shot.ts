@@ -21,9 +21,9 @@
 |   - routerContainer : Router Container Function 🔥
 */
 
-import {type Context, Hono, type MiddlewareHandler} from "hono"
-import {HTTPException} from "hono/http-exception"
-import type {StatusCode} from "hono/utils/http-status"
+import { type Context, Hono, type MiddlewareHandler } from "hono";
+import { HTTPException } from "hono/http-exception";
+import type { StatusCode } from "hono/utils/http-status";
 
 /*
 |
@@ -33,58 +33,58 @@ import type {StatusCode} from "hono/utils/http-status"
 |
 */
 export type ApiResponse = {
-    success: boolean
-    message: string
-    meta?: object
-    data: string | number | boolean | object | [] | undefined | null
-}
+  success: boolean;
+  message: string;
+  meta?: object;
+  data: string | number | boolean | object | [] | undefined | null;
+};
 
 /**********************************
  * HTTP Status Codes 🔥
  * ********************************/
 export const HTTPStatus = {
-    OK: 200 as StatusCode, // OK (Successful)
-    MovedPermanently: 301 as StatusCode, // Moved Permanently (Redirection)
-    BadRequest: 400 as StatusCode, // Bad Request (Client Error)
-    Unauthorized: 401 as StatusCode, // Unauthorized (Client Error)
-    Forbidden: 403 as StatusCode, // Forbidden (Client Error)
-    NotFound: 404 as StatusCode, // Not Found (Client Error)
-    Conflict: 409 as StatusCode, // Conflict (Client Error)
-    InternalServerError: 500 as StatusCode, // Internal Server Error (Server Error)
-    ServiceUnavailable: 503 as StatusCode, // Service Unavailable (Server Error)
-}
+  OK: 200 as StatusCode, // OK (Successful)
+  MovedPermanently: 301 as StatusCode, // Moved Permanently (Redirection)
+  BadRequest: 400 as StatusCode, // Bad Request (Client Error)
+  Unauthorized: 401 as StatusCode, // Unauthorized (Client Error)
+  Forbidden: 403 as StatusCode, // Forbidden (Client Error)
+  NotFound: 404 as StatusCode, // Not Found (Client Error)
+  Conflict: 409 as StatusCode, // Conflict (Client Error)
+  InternalServerError: 500 as StatusCode, // Internal Server Error (Server Error)
+  ServiceUnavailable: 503 as StatusCode, // Service Unavailable (Server Error)
+};
 
 /**********************************
  * Response Function 🔥
  * ********************************/
 export function response(
-    message: string,
-    data?: string | object | [] | boolean | number | null,
-    extra?: object,
-    success = true,
+  message: string,
+  data?: string | object | [] | boolean | number | null,
+  extra?: object,
+  success = true,
 ): ApiResponse {
-    return {
-        success: success || false,
-        message,
-        meta: extra,
-        data: data || null,
-    }
+  return {
+    success: success || false,
+    message,
+    meta: extra,
+    data: data || null,
+  };
 }
 
 /*
   Exception Response Middleware Function 🔥
 */
 export function middleWareExceptionResponse(
-    ctx: Context,
-    e: unknown,
+  ctx: Context,
+  e: unknown,
 ): Response {
-    if (e instanceof Error) {
-        ctx.status(HTTPStatus.Unauthorized)
-        return ctx.json(response(e.message, null, {}, false))
-    }
+  if (e instanceof Error) {
+    ctx.status(HTTPStatus.Unauthorized);
+    return ctx.json(response(e.message, null, {}, false));
+  }
 
-    ctx.status(HTTPStatus.InternalServerError)
-    return ctx.json(response("Internal server error", null, {}, false))
+  ctx.status(HTTPStatus.InternalServerError);
+  return ctx.json(response("Internal server error", null, {}, false));
 }
 
 /*
@@ -96,35 +96,35 @@ export function middleWareExceptionResponse(
 */
 
 export const safeAsync = (
-    func: (ctx: Context) => Promise<ApiResponse>,
-): ((ctx: Context) => Promise<Response>) => {
-    return async (ctx: Context) => {
-        try {
-            const response = await func(ctx)
-            ctx.status(200)
-            return ctx.json(response)
-        } catch (error) {
-            if (error instanceof HTTPException) {
-                ctx.status(error.status)
-                return ctx.json({
-                    success: false,
-                    message: error.message,
-                    data: null,
-                    meta: {status: error.status},
-                })
-            }
+  func: (ctx: Context) => Promise<ApiResponse>,
+): (ctx: Context) => Promise<Response> => {
+  return async (ctx: Context) => {
+    try {
+      const response = await func(ctx);
+      ctx.status(200);
+      return ctx.json(response);
+    } catch (error) {
+      if (error instanceof HTTPException) {
+        ctx.status(error.status);
+        return ctx.json({
+          success: false,
+          message: error.message,
+          data: null,
+          meta: { status: error.status },
+        });
+      }
 
-            console.error("Internal Server Error. Log : ", error)
-            ctx.status(500)
-            return ctx.json({
-                success: false,
-                message: "Request is not processed by the server.",
-                data: null,
-                meta: {status: 500},
-            })
-        }
+      console.error("Internal Server Error. Log : ", error);
+      ctx.status(500);
+      return ctx.json({
+        success: false,
+        message: "Request is not processed by the server.",
+        data: null,
+        meta: { status: 500 },
+      });
     }
-}
+  };
+};
 
 /*
 |
@@ -134,48 +134,48 @@ export const safeAsync = (
 |
 */
 type RouteDefinition = {
-    method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
-    path: string
-    controller: (ctx: Context) => Promise<ApiResponse>
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    middlewares?: MiddlewareHandler<any>[]
-}
+  method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH";
+  path: string;
+  controller: (ctx: Context) => Promise<ApiResponse>;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  middlewares?: MiddlewareHandler<any>[];
+};
 
 export function router({
-                           routes,
-                           routeGuard = null,
-                           basePath = null,
-                       }: {
-    routes: RouteDefinition[]
-    basePath?: string | null
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    routeGuard?: MiddlewareHandler<any> | null
+  routes,
+  routeGuard = null,
+  basePath = null,
+}: {
+  routes: RouteDefinition[];
+  basePath?: string | null;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  routeGuard?: MiddlewareHandler<any> | null;
 }): Hono {
-    const controllerRoutes = new Hono().basePath(basePath ?? "")
+  const controllerRoutes = new Hono().basePath(basePath ?? "");
 
-    if (routeGuard) {
-        controllerRoutes.use(routeGuard)
+  if (routeGuard) {
+    controllerRoutes.use(routeGuard);
+  }
+  for (const { method, path, controller, middlewares = [] } of routes) {
+    switch (method) {
+      case "POST":
+        controllerRoutes.post(path, ...middlewares, safeAsync(controller));
+        break;
+      case "GET":
+        controllerRoutes.get(path, ...middlewares, safeAsync(controller));
+        break;
+      case "PUT":
+        controllerRoutes.put(path, ...middlewares, safeAsync(controller));
+        break;
+      case "DELETE":
+        controllerRoutes.delete(path, ...middlewares, safeAsync(controller));
+        break;
+      case "PATCH":
+        controllerRoutes.patch(path, ...middlewares, safeAsync(controller));
+        break;
     }
-    for (const {method, path, controller, middlewares = []} of routes) {
-        switch (method) {
-            case "POST":
-                controllerRoutes.post(path, ...middlewares, safeAsync(controller))
-                break
-            case "GET":
-                controllerRoutes.get(path, ...middlewares, safeAsync(controller))
-                break
-            case "PUT":
-                controllerRoutes.put(path, ...middlewares, safeAsync(controller))
-                break
-            case "DELETE":
-                controllerRoutes.delete(path, ...middlewares, safeAsync(controller))
-                break
-            case "PATCH":
-                controllerRoutes.patch(path, ...middlewares, safeAsync(controller))
-                break
-        }
-    }
-    return controllerRoutes
+  }
+  return controllerRoutes;
 }
 
 /*
@@ -189,23 +189,23 @@ export function router({
 |
 */
 type RouterConstructor = new () => {
-    routes: Hono
-}
+  routes: Hono;
+};
 
 export function routerFactory(routers: Array<RouterConstructor>): Hono {
-    const factoryInstance = new Hono()
+  const factoryInstance = new Hono();
 
-    for (const RouterClass of routers) {
-        const routerInstance = new RouterClass()
+  for (const RouterClass of routers) {
+    const routerInstance = new RouterClass();
 
-        if (routerInstance.routes === undefined) {
-            throw new Error("Router must have a 'routes' method")
-        }
-
-        factoryInstance.route("/", routerInstance.routes)
+    if (routerInstance.routes === undefined) {
+      throw new Error("Router must have a 'routes' method");
     }
 
-    return factoryInstance
+    factoryInstance.route("/", routerInstance.routes);
+  }
+
+  return factoryInstance;
 }
 
 /*
@@ -219,16 +219,18 @@ export function routerFactory(routers: Array<RouterConstructor>): Hono {
 */
 
 type RouterContainerOptions = {
-    basePath?: string
-    routers: Array<() => Hono>
-}
+  basePath?: string;
+  routers: Array<Hono>;
+};
 
-export function routerContainer({basePath, routers}: RouterContainerOptions): Hono {
-    const containerInstance = new Hono().basePath(basePath ?? "")
+export function routerContainer(
+  { basePath, routers }: RouterContainerOptions,
+): Hono {
+  const containerInstance = new Hono().basePath(basePath ?? "");
 
-    for (const router of routers) {
-        containerInstance.route("/", router())
-    }
+  for (const router of routers) {
+    containerInstance.route("/", router);
+  }
 
-    return containerInstance
+  return containerInstance;
 }
