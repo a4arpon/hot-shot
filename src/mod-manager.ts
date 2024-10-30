@@ -34,7 +34,7 @@ export async function generateModule(moduleName: string) {
 
     const routerContent = generateRouterFile(moduleName, fileExtensions);
     const controllerContent = generateControllerFile(moduleName, fileExtensions);
-    const servicesContent = generateServicesFile(moduleName, fileExtensions);
+    const servicesContent = generateServicesFile(moduleName);
 
     fs.writeFileSync(
         path.join(moduleDirPath, `routes${fileExtensions}`),

@@ -12,13 +12,16 @@ export function nameFixer(moduleName: string, isClassName: boolean = true): stri
 }
 
 export function generateRouterFile(moduleName: string, fileExtension: string): string {
-    const routerClassName = `${nameFixer(moduleName)}Router`;
+    const routerClassName = nameFixer(moduleName, true);
+    const controllerClassName = nameFixer(moduleName, true) + 'Controller';
+    const controllerMethodName = nameFixer(moduleName, false);
+
     return `
 import type {Hono} from "hono";
 import {router, routerContainer} from "@a4arpon/hotshot";
-import {CONTROLLER} from "./controller${fileExtension}";
+import {${controllerClassName}} from "./controller${fileExtension}";
 
-export class ${routerClassName} {
+export class ${routerClassName}Router {
     public readonly routes: Hono
 
     constructor() {
@@ -30,14 +33,14 @@ export class ${routerClassName} {
 
     defaultRoutes() {
 
-        const controllerInstance = new CONTROLLER()
+        const ${nameFixer(moduleName, false)}Controller = new ${controllerClassName}()
 
         return router({
             basePath: '/',
             routes: [{
                 path: '/',
                 method: "GET",
-                controller: controllerInstance.CONTROLLER_METHOD
+                controller: ${nameFixer(moduleName, false)}Controller.${controllerMethodName}
             }]
         })
     }
@@ -49,7 +52,7 @@ export function generateControllerFile(
     moduleName: string,
     fileExtension: string,
 ): string {
-    const controllerClassName = nameFixer(moduleName, true);
+    const controllerClassName = nameFixer(moduleName, true) + 'Controller';
     const controllerFileName = nameFixer(moduleName, false);
     const serviceName = nameFixer(moduleName, true) + "Services";
     const serviceMethodName = nameFixer(moduleName, false);
@@ -59,14 +62,14 @@ import type {Context} from "hono";
 import {${serviceName}} from "./services${fileExtension}";
 
 export class ${controllerClassName} {
-    private readonly services: ${serviceName}
+    private readonly ${nameFixer(moduleName, false)}Services: ${serviceName}
 
     constructor() {
-        this.services = new ${serviceName}()
+        this.${nameFixer(moduleName, false)}Services = new ${serviceName}()
     }
 
     ${controllerFileName} = async (ctx: Context) => {
-        return this.services.${serviceMethodName}()
+        return this.${nameFixer(moduleName, false)}Services.${serviceMethodName}()
     }
 }
 `;
@@ -74,10 +77,9 @@ export class ${controllerClassName} {
 
 export function generateServicesFile(
     moduleName: string,
-    fileExtension: string,
 ): string {
     const servicesClassName = nameFixer(moduleName, true) + "Services";
-    const serviceMethodName = nameFixer(moduleName, false) + "Message";
+    const serviceMethodName = nameFixer(moduleName, false);
 
     return `
 import {response} from "@a4arpon/hotshot";
