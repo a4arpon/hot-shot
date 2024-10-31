@@ -11,7 +11,7 @@ export function nameFixer(moduleName: string, isClassName: boolean = true): stri
         : fixedName;
 }
 
-export function generateRouterFile(moduleName: string, fileExtension: string): string {
+export function generateRouterFile(moduleName: string, _fileExtension: string): string {
     const routerClassName = nameFixer(moduleName, true);
     const controllerClassName = nameFixer(moduleName, true) + 'Controller';
     const controllerMethodName = nameFixer(moduleName, false);
@@ -19,7 +19,7 @@ export function generateRouterFile(moduleName: string, fileExtension: string): s
     return `
 import type {Hono} from "hono";
 import {router, routerContainer} from "@a4arpon/hotshot";
-import {${controllerClassName}} from "./controller${fileExtension}";
+import {${controllerClassName}} from "./controller";
 
 export class ${routerClassName}Router {
     public readonly routes: Hono
@@ -50,7 +50,7 @@ export class ${routerClassName}Router {
 
 export function generateControllerFile(
     moduleName: string,
-    fileExtension: string,
+    _fileExtension: string,
 ): string {
     const controllerClassName = nameFixer(moduleName, true) + 'Controller';
     const controllerFileName = nameFixer(moduleName, false);
@@ -59,7 +59,7 @@ export function generateControllerFile(
 
     return `
 import type {Context} from "hono";
-import {${serviceName}} from "./services${fileExtension}";
+import {${serviceName}} from "./services";
 
 export class ${controllerClassName} {
     private readonly ${nameFixer(moduleName, false)}Services: ${serviceName}
