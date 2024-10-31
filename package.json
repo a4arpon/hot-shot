@@ -1,6 +1,6 @@
 {
   "name": "@a4arpon/hotshot",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "module": "./src/hot-shot.ts",
   "type": "module",
   "bin": "./build/main.js",
