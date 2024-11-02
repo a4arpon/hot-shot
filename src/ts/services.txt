@@ -1,7 +1,0 @@
-import {response} from "@a4arpon/hotshot";
-
-export class SERVICES {
-    async METHOD_NAME() {
-        return response("Hi World!");
-    }
-}

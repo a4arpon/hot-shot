@@ -4,7 +4,9 @@
 
 **If you're on other planets you can use it too. Just use Bun only for now.**
 
-## Build Fast, Ship Faster, But This Framework Is More Faster than Your Crush Rejects Your Proposal.
+### If You Want To Ship Fast, You Have To Build Faster.
+
+** But this framework is more faster than your crush rejects your proposal.**
 
 Welcome to **Hot Shot**, a meta-framework built on top of
 [Hono](https://honojs.dev/), inspired by the best features of AdonisJS and
@@ -35,6 +37,22 @@ codebase modular and maintainable.
 
 ## Getting Started
 
+### Copy Starter Kit (Recommended)
+
+Copy the starter kit to your project directory and start coding.
+
+```bash
+npx jsr add @a4arpon/hotshot-starter-kit
+```
+
+I am too lazy to write the documentation for this. So, I recommend you to copy the starter kit to your project directory
+and start coding. I don't know know what this documentation contains. This is 99% ChatGPT generated. If you face any
+problem, please open an issue on GitHub or Hey directly message me on LinkedIn Or Twitter.
+
+- [LinkedIn](https://www.linkedin.com/in/a4arpon/)
+- [Twitter](https://twitter.com/a4arpon)
+- [Facebook](https://www.facebook.com/a4arpon/)
+
 ### Installation
 
 Install Hot Shot via npm:
@@ -59,33 +77,33 @@ module or feature of your application.
 
 ```typescript
 export class UserRoutes {
-  public readonly routes: Hono;
-  private readonly userController: UserController;
+    public readonly routes: Hono;
+    private readonly userController: UserController;
 
-  constructor() {
-    this.userController = new UserController();
-    this.routes = router({
-      basePath: "users",
-      routes: [
-        {
-          path: "/register",
-          method: "POST",
-          controller: this.userController.register,
-        },
-        {
-          path: "/login",
-          method: "POST",
-          controller: this.userController.login,
-        },
-        {
-          path: "/profile",
-          method: "GET",
-          controller: this.userController.getProfile,
-          middlewares: [AuthGuard],
-        },
-      ],
-    });
-  }
+    constructor() {
+        this.userController = new UserController();
+        this.routes = router({
+            basePath: "users",
+            routes: [
+                {
+                    path: "/register",
+                    method: "POST",
+                    controller: this.userController.register,
+                },
+                {
+                    path: "/login",
+                    method: "POST",
+                    controller: this.userController.login,
+                },
+                {
+                    path: "/profile",
+                    method: "GET",
+                    controller: this.userController.getProfile,
+                    middlewares: [AuthGuard],
+                },
+            ],
+        });
+    }
 }
 ```
 
@@ -102,22 +120,22 @@ responses.
 
 ```typescript
 export class UserController {
-  async register(ctx: Context): Promise<ApiResponse> {
-    const data = await ctx.req.json();
-    // Logic to register a user
-    return response("User registered successfully", { userId: 1 });
-  }
+    async register(ctx: Context): Promise<ApiResponse> {
+        const data = await ctx.req.json();
+        // Logic to register a user
+        return response("User registered successfully", {userId: 1});
+    }
 
-  async login(ctx: Context): Promise<ApiResponse> {
-    const data = await ctx.req.json();
-    // Logic to authenticate a user
-    return response("User logged in successfully", { token: "jwt-token" });
-  }
+    async login(ctx: Context): Promise<ApiResponse> {
+        const data = await ctx.req.json();
+        // Logic to authenticate a user
+        return response("User logged in successfully", {token: "jwt-token"});
+    }
 
-  async getProfile(ctx: Context): Promise<ApiResponse> {
-    // Logic to retrieve user profile
-    return response("User profile retrieved", { name: "John Doe" });
-  }
+    async getProfile(ctx: Context): Promise<ApiResponse> {
+        // Logic to retrieve user profile
+        return response("User profile retrieved", {name: "John Doe"});
+    }
 }
 ```
 
@@ -132,29 +150,29 @@ authentication or input validation.
 
 ```typescript
 export const AuthGuard = async (ctx: Context, next: () => Promise<void>) => {
-  try {
-    const authHeader = ctx.req.header("Authorization");
-    const token = authHeader?.split(" ")[1];
+    try {
+        const authHeader = ctx.req.header("Authorization");
+        const token = authHeader?.split(" ")[1];
 
-    if (!token) {
-      ctx.status(401);
-      return ctx.json(response("Unauthorized access", null, {}, false));
+        if (!token) {
+            ctx.status(401);
+            return ctx.json(response("Unauthorized access", null, {}, false));
+        }
+
+        // Verify token (implementation depends on your auth strategy)
+        const user = verifyToken(token);
+
+        if (!user) {
+            ctx.status(401);
+            return ctx.json(response("Invalid token", null, {}, false));
+        }
+
+        ctx.user = user;
+        await next();
+    } catch (error) {
+        ctx.status(500);
+        return ctx.json(response("Server error", null, {}, false));
     }
-
-    // Verify token (implementation depends on your auth strategy)
-    const user = verifyToken(token);
-
-    if (!user) {
-      ctx.status(401);
-      return ctx.json(response("Invalid token", null, {}, false));
-    }
-
-    ctx.user = user;
-    await next();
-  } catch (error) {
-    ctx.status(500);
-    return ctx.json(response("Server error", null, {}, false));
-  }
 };
 ```
 
@@ -170,9 +188,9 @@ route.
 
 ```typescript
 export const applicationRoutes = routerFactory([
-  UserRoutes,
-  ProductRoutes,
-  OrderRoutes,
+    UserRoutes,
+    ProductRoutes,
+    OrderRoutes,
 ]);
 ```
 
@@ -185,7 +203,7 @@ Use the `response` function to create consistent API responses.
 #### Example: Using the Response Helper
 
 ```typescript
-return response("Operation successful", { data: "Sample data" });
+return response("Operation successful", {data: "Sample data"});
 ```
 
 ### Middleware Exception Response
@@ -196,15 +214,15 @@ Use `middleWareExceptionResponse` to handle exceptions in middleware.
 
 ```typescript
 export const ExampleMiddleware = async (
-  ctx: Context,
-  next: () => Promise<void>,
+    ctx: Context,
+    next: () => Promise<void>,
 ) => {
-  try {
-    // Middleware logic
-    await next();
-  } catch (error) {
-    return middleWareExceptionResponse(ctx, error);
-  }
+    try {
+        // Middleware logic
+        await next();
+    } catch (error) {
+        return middleWareExceptionResponse(ctx, error);
+    }
 };
 ```
 
@@ -216,25 +234,25 @@ Let's build a simple blog module with posts and comments.
 
 ```typescript
 export class PostsController {
-  async createPost(ctx: Context): Promise<ApiResponse> {
-    const data = await ctx.req.json();
-    // Logic to create a post
-    return response("Post created", { postId: 1 });
-  }
+    async createPost(ctx: Context): Promise<ApiResponse> {
+        const data = await ctx.req.json();
+        // Logic to create a post
+        return response("Post created", {postId: 1});
+    }
 
-  async getPost(ctx: Context): Promise<ApiResponse> {
-    const { postId } = ctx.req.param();
-    // Logic to get a post
-    return response("Post retrieved", { postId, title: "Sample Post" });
-  }
+    async getPost(ctx: Context): Promise<ApiResponse> {
+        const {postId} = ctx.req.param();
+        // Logic to get a post
+        return response("Post retrieved", {postId, title: "Sample Post"});
+    }
 }
 
 export class CommentsController {
-  async addComment(ctx: Context): Promise<ApiResponse> {
-    const data = await ctx.req.json();
-    // Logic to add a comment
-    return response("Comment added", { commentId: 1 });
-  }
+    async addComment(ctx: Context): Promise<ApiResponse> {
+        const data = await ctx.req.json();
+        // Logic to add a comment
+        return response("Comment added", {commentId: 1});
+    }
 }
 ```
 
@@ -242,48 +260,48 @@ export class CommentsController {
 
 ```typescript
 export class PostsRoutes {
-  public readonly routes: Hono;
-  private readonly postsController: PostsController;
+    public readonly routes: Hono;
+    private readonly postsController: PostsController;
 
-  constructor() {
-    this.postsController = new PostsController();
-    this.routes = router({
-      basePath: "posts",
-      routes: [
-        {
-          path: "/",
-          method: "POST",
-          controller: this.postsController.createPost,
-          middlewares: [AuthGuard],
-        },
-        {
-          path: "/:postId",
-          method: "GET",
-          controller: this.postsController.getPost,
-        },
-      ],
-    });
-  }
+    constructor() {
+        this.postsController = new PostsController();
+        this.routes = router({
+            basePath: "posts",
+            routes: [
+                {
+                    path: "/",
+                    method: "POST",
+                    controller: this.postsController.createPost,
+                    middlewares: [AuthGuard],
+                },
+                {
+                    path: "/:postId",
+                    method: "GET",
+                    controller: this.postsController.getPost,
+                },
+            ],
+        });
+    }
 }
 
 export class CommentsRoutes {
-  public readonly routes: Hono;
-  private readonly commentsController: CommentsController;
+    public readonly routes: Hono;
+    private readonly commentsController: CommentsController;
 
-  constructor() {
-    this.commentsController = new CommentsController();
-    this.routes = router({
-      basePath: "comments",
-      routes: [
-        {
-          path: "/",
-          method: "POST",
-          controller: this.commentsController.addComment,
-          middlewares: [AuthGuard],
-        },
-      ],
-    });
-  }
+    constructor() {
+        this.commentsController = new CommentsController();
+        this.routes = router({
+            basePath: "comments",
+            routes: [
+                {
+                    path: "/",
+                    method: "POST",
+                    controller: this.commentsController.addComment,
+                    middlewares: [AuthGuard],
+                },
+            ],
+        });
+    }
 }
 ```
 
@@ -291,9 +309,9 @@ export class CommentsRoutes {
 
 ```typescript
 export const applicationRoutes = routerFactory([
-  UserRoutes,
-  PostsRoutes,
-  CommentsRoutes,
+    UserRoutes,
+    PostsRoutes,
+    CommentsRoutes,
 ]);
 ```
 
@@ -305,7 +323,7 @@ const app = new Hono();
 app.route("/", applicationRoutes);
 
 app.listen(3000, () => {
-  console.log("Blog application is running on http://localhost:3000");
+    console.log("Blog application is running on http://localhost:3000");
 });
 ```
 

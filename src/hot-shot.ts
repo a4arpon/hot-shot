@@ -21,9 +21,10 @@
 |   - routerContainer : Router Container Function 🔥
 */
 
-import { type Context, Hono, type MiddlewareHandler } from "hono";
-import { HTTPException } from "hono/http-exception";
-import type { StatusCode } from "hono/utils/http-status";
+import { type Context, Hono, type Next } from "hono"
+import { createMiddleware } from "hono/factory"
+import { HTTPException } from "hono/http-exception"
+import type { StatusCode } from "hono/utils/http-status"
 
 /*
 |
@@ -33,11 +34,11 @@ import type { StatusCode } from "hono/utils/http-status";
 |
 */
 export type ApiResponse = {
-  success: boolean;
-  message: string;
-  meta?: object;
-  data: string | number | boolean | object | [] | undefined | null;
-};
+  success: boolean
+  message: string
+  meta?: object
+  data: string | number | boolean | object | [] | undefined | null
+}
 
 /**********************************
  * HTTP Status Codes 🔥
@@ -52,7 +53,7 @@ export const HTTPStatus = {
   Conflict: 409 as StatusCode, // Conflict (Client Error)
   InternalServerError: 500 as StatusCode, // Internal Server Error (Server Error)
   ServiceUnavailable: 503 as StatusCode, // Service Unavailable (Server Error)
-};
+}
 
 /**********************************
  * Response Function 🔥
@@ -68,7 +69,7 @@ export function response(
     message,
     meta: extra,
     data: data || null,
-  };
+  }
 }
 
 /*
@@ -79,12 +80,12 @@ export function middleWareExceptionResponse(
   e: unknown,
 ): Response {
   if (e instanceof Error) {
-    ctx.status(HTTPStatus.Unauthorized);
-    return ctx.json(response(e.message, null, {}, false));
+    ctx.status(HTTPStatus.Unauthorized)
+    return ctx.json(response(e.message, null, {}, false))
   }
 
-  ctx.status(HTTPStatus.InternalServerError);
-  return ctx.json(response("Internal server error", null, {}, false));
+  ctx.status(HTTPStatus.InternalServerError)
+  return ctx.json(response("Internal server error", null, {}, false))
 }
 
 /*
@@ -97,34 +98,34 @@ export function middleWareExceptionResponse(
 
 export const safeAsync = (
   func: (ctx: Context) => Promise<ApiResponse>,
-): (ctx: Context) => Promise<Response> => {
+): ((ctx: Context) => Promise<Response>) => {
   return async (ctx: Context) => {
     try {
-      const response = await func(ctx);
-      ctx.status(200);
-      return ctx.json(response);
+      const response = await func(ctx)
+      ctx.status(200)
+      return ctx.json(response)
     } catch (error) {
       if (error instanceof HTTPException) {
-        ctx.status(error.status);
+        ctx.status(error.status)
         return ctx.json({
           success: false,
           message: error.message,
           data: null,
           meta: { status: error.status },
-        });
+        })
       }
 
-      console.error("Internal Server Error. Log : ", error);
-      ctx.status(500);
+      console.error("Internal Server Error. Log : ", error)
+      ctx.status(500)
       return ctx.json({
         success: false,
         message: "Request is not processed by the server.",
         data: null,
         meta: { status: 500 },
-      });
+      })
     }
-  };
-};
+  }
+}
 
 /*
 |
@@ -133,49 +134,58 @@ export const safeAsync = (
 |--------------------------------------------------------------------------
 |
 */
+
+type MiddlewareType = new () => UseGuard
+
 type RouteDefinition = {
-  method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH";
-  path: string;
-  controller: (ctx: Context) => Promise<ApiResponse>;
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  middlewares?: MiddlewareHandler<any>[];
-};
+  method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
+  path: string
+  controller: (ctx: Context) => Promise<ApiResponse>
+  middlewares?: MiddlewareType[]
+}
 
 export function router({
   routes,
-  routeGuard = null,
+  routeGuard,
   basePath = null,
 }: {
-  routes: RouteDefinition[];
-  basePath?: string | null;
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  routeGuard?: MiddlewareHandler<any> | null;
+  routes: RouteDefinition[]
+  basePath?: string | null
+  routeGuard?: MiddlewareType
 }): Hono {
-  const controllerRoutes = new Hono().basePath(basePath ?? "");
+  const controllerRoutes = new Hono().basePath(basePath ?? "")
 
   if (routeGuard) {
-    controllerRoutes.use(routeGuard);
+    controllerRoutes.use(middlewareFactory(routeGuard))
   }
-  for (const { method, path, controller, middlewares = [] } of routes) {
+  for (const {
+    method,
+    path,
+    controller,
+    middlewares: rawMiddlewares = [],
+  } of routes) {
+    const middlewares = rawMiddlewares.map((middleware: MiddlewareType) =>
+      middlewareFactory(middleware),
+    )
     switch (method) {
       case "POST":
-        controllerRoutes.post(path, ...middlewares, safeAsync(controller));
-        break;
+        controllerRoutes.post(path, ...middlewares, safeAsync(controller))
+        break
       case "GET":
-        controllerRoutes.get(path, ...middlewares, safeAsync(controller));
-        break;
+        controllerRoutes.get(path, ...middlewares, safeAsync(controller))
+        break
       case "PUT":
-        controllerRoutes.put(path, ...middlewares, safeAsync(controller));
-        break;
+        controllerRoutes.put(path, ...middlewares, safeAsync(controller))
+        break
       case "DELETE":
-        controllerRoutes.delete(path, ...middlewares, safeAsync(controller));
-        break;
+        controllerRoutes.delete(path, ...middlewares, safeAsync(controller))
+        break
       case "PATCH":
-        controllerRoutes.patch(path, ...middlewares, safeAsync(controller));
-        break;
+        controllerRoutes.patch(path, ...middlewares, safeAsync(controller))
+        break
     }
   }
-  return controllerRoutes;
+  return controllerRoutes
 }
 
 /*
@@ -189,23 +199,23 @@ export function router({
 |
 */
 type RouterConstructor = new () => {
-  routes: Hono;
-};
+  routes: Hono
+}
 
 export function routerFactory(routers: Array<RouterConstructor>): Hono {
-  const factoryInstance = new Hono();
+  const factoryInstance = new Hono()
 
   for (const RouterClass of routers) {
-    const routerInstance = new RouterClass();
+    const routerInstance = new RouterClass()
 
     if (routerInstance.routes === undefined) {
-      throw new Error("Router must have a 'routes' method");
+      throw new Error("Router must have a 'routes' method")
     }
 
-    factoryInstance.route("/", routerInstance.routes);
+    factoryInstance.route("/", routerInstance.routes)
   }
 
-  return factoryInstance;
+  return factoryInstance
 }
 
 /*
@@ -219,18 +229,52 @@ export function routerFactory(routers: Array<RouterConstructor>): Hono {
 */
 
 type RouterContainerOptions = {
-  basePath?: string;
-  routers: Array<Hono>;
-};
+  basePath?: string
+  routers: Array<Hono>
+}
 
-export function routerContainer(
-  { basePath, routers }: RouterContainerOptions,
-): Hono {
-  const containerInstance = new Hono().basePath(basePath ?? "");
+export function routerContainer({
+  basePath,
+  routers,
+}: RouterContainerOptions): Hono {
+  const containerInstance = new Hono().basePath(basePath ?? "")
 
   for (const router of routers) {
-    containerInstance.route("/", router);
+    containerInstance.route("/", router)
   }
 
-  return containerInstance;
+  return containerInstance
+}
+
+/*
+|
+|--------------------------------------------------------------------------
+| Use Guard 🔥
+|
+| Use Guard function is used to add a middleware to a router
+|--------------------------------------------------------------------------
+|
+*/
+
+export type UseGuard = {
+  use: (ctx: Context, next: Next) => Promise<void>
+}
+
+export function middlewareFactory(Middleware: new () => UseGuard) {
+  return createMiddleware(async (ctx: Context, next: Next) => {
+    try {
+      await new Middleware().use(ctx, next)
+    } catch (error) {
+      if (error instanceof HTTPException) {
+        ctx.status(error.status)
+        return ctx.json(response(error.message, null, {}, false))
+      }
+      if (error instanceof Error) {
+        ctx.status(HTTPStatus.Unauthorized)
+        return ctx.json(response(error.message, null, {}, false))
+      }
+      ctx.status(HTTPStatus.BadRequest)
+      return ctx.json(response("Bad Request", null, {}, false))
+    }
+  })
 }

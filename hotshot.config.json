@@ -5,47 +5,26 @@
     "mods": [
       {
         "type": "router",
-        "name": "products",
-        "path": "./src/mods/products-mod",
+        "name": "blogs",
+        "path": "./src/mods/blogs-mod",
         "contains": [
           "router",
           "controller",
           "services"
         ],
         "services": [
-          "products.services",
-          "reviews.services.js",
-          "admin-products.services"
+          "blogs.services"
         ]
+      }
+    ],
+    "middlewares": [
+      {
+        "name": "auth",
+        "path": "./src/middlewares/auth.middleware"
       },
       {
-        "type": "router",
-        "name": "cart",
-        "path": "./src/mods/cart-mod",
-        "contains": [
-          "router",
-          "controller",
-          "services"
-        ],
-        "services": [
-          "cart.services"
-        ]
-      },
-      {
-        "type": "router",
-        "name": "auth-user",
-        "path": "./src/mods/auth-user-mod",
-        "contains": [
-          "router",
-          "controller",
-          "services"
-        ],
-        "services": [
-          "auth-user.services",
-          "token.services.js",
-          "verfication.services.js",
-          "misc.services.js"
-        ]
+        "name": "admin",
+        "path": "./src/middlewares/admin.middleware.ts"
       }
     ]
   }

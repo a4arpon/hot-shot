@@ -1,26 +1,25 @@
-export function nameFixer(
-  moduleName: string,
-  isClassName: boolean = true,
-): string {
-  const words = moduleName.split("-");
-  const fixedName = words.map((word, index) =>
-    index === 0
-      ? word.toLowerCase()
-      : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-  ).join("");
+export function nameFixer(moduleName: string, isClassName = true): string {
+  const words = moduleName.split("-")
+  const fixedName = words
+    .map((word, index) =>
+      index === 0
+        ? word.toLowerCase()
+        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+    )
+    .join("")
 
   return isClassName
     ? fixedName.charAt(0).toUpperCase() + fixedName.slice(1)
-    : fixedName;
+    : fixedName
 }
 
 export function generateRouterFile(
   moduleName: string,
   _fileExtension: string,
 ): string {
-  const routerClassName = nameFixer(moduleName, true);
-  const controllerClassName = nameFixer(moduleName, true) + "Controller";
-  const controllerMethodName = nameFixer(moduleName, false);
+  const routerClassName = nameFixer(moduleName, true)
+  const controllerClassName = `${nameFixer(moduleName, true)}Controller`
+  const controllerMethodName = nameFixer(moduleName, false)
 
   return `
 import type {Hono} from "hono";
@@ -39,33 +38,35 @@ export class ${routerClassName}Router {
 
     defaultRoutes() {
 
-        const ${
-    nameFixer(moduleName, false)
-  }Controller = new ${controllerClassName}()
+        const ${nameFixer(
+          moduleName,
+          false,
+        )}Controller = new ${controllerClassName}()
 
         return router({
             basePath: '/',
             routes: [{
                 path: '/',
                 method: "GET",
-                controller: ${
-    nameFixer(moduleName, false)
-  }Controller.${controllerMethodName}
+                controller: ${nameFixer(
+                  moduleName,
+                  false,
+                )}Controller.${controllerMethodName}
             }]
         })
     }
 }
-`;
+`
 }
 
 export function generateControllerFile(
   moduleName: string,
   _fileExtension: string,
 ): string {
-  const controllerClassName = nameFixer(moduleName, true) + "Controller";
-  const controllerFileName = nameFixer(moduleName, false);
-  const serviceName = nameFixer(moduleName, true) + "Services";
-  const serviceMethodName = nameFixer(moduleName, false);
+  const controllerClassName = `${nameFixer(moduleName, true)}Controller`
+  const controllerFileName = nameFixer(moduleName, false)
+  const serviceName = `${nameFixer(moduleName, true)}Services`
+  const serviceMethodName = nameFixer(moduleName, false)
 
   return `
 import type {Context} from "hono";
@@ -79,19 +80,18 @@ export class ${controllerClassName} {
     }
 
     ${controllerFileName} = async (ctx: Context) => {
-        return this.${
-    nameFixer(moduleName, false)
-  }Services.${serviceMethodName}()
+        return this.${nameFixer(
+          moduleName,
+          false,
+        )}Services.${serviceMethodName}()
     }
 }
-`;
+`
 }
 
-export function generateServicesFile(
-  moduleName: string,
-): string {
-  const servicesClassName = nameFixer(moduleName, true) + "Services";
-  const serviceMethodName = nameFixer(moduleName, false);
+export function generateServicesFile(moduleName: string): string {
+  const servicesClassName = `${nameFixer(moduleName, true)}Services`
+  const serviceMethodName = nameFixer(moduleName, false)
 
   return `
 import {response} from "@a4arpon/hotshot";
@@ -101,36 +101,24 @@ export class ${servicesClassName} {
         return response("Hi from ${moduleName}!");
     }
 }
-`;
+`
 }
 
-export function generateMiddlewareContent(
-  middlewareName: string,
-  type: string,
-) {
+export function generateMiddlewareFile(middlewareName: string): string {
+  const middlewareClassName = `${nameFixer(middlewareName, true)}Middleware`
   return `
-    import { middleWareExceptionResponse, response } from "@a4arpon/hotshot"
-    
-    
-    const exceptionRoutes = ["exception-route"]
-    
-    export const ${
-    nameFixer(middlewareName + type, true)
-  } = async (ctx: Context, next: () => Promise<void>) => {
-    try {
-    /*
-    | ----------------------------------------------------------------------
-    | Exception Routes
-    | ----------------------------------------------------------------------
-    */
-    if (exceptionRoutes.includes(ctx.req.path.split("/").at(-1) ?? "")) {
-      await next()
+import { type UseGuard, HTTPStatus } from "@a4arpon/hotshot";
+
+export class ${middlewareClassName} implements UseGuard {
+  async use(ctx: Context, next: Next) {
+    if (ctx.req.path === "/${middlewareName.toLowerCase()}-middleware") {
+      throw new HTTPException(HTTPStatus.BadRequest, {
+        message: "You're hitting on a dummy route",
+      });
     }
 
-      await next()
-    } catch (e) {
-      return middleWareExceptionResponse(ctx, e)
-    }
-  })
-  `;
+    console.log("${middlewareClassName} Activated On", ctx.req.path);
+    await next();
+  }
+}`
 }
