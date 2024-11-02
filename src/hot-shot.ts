@@ -21,7 +21,7 @@
 |   - routerContainer : Router Container Function 🔥
 */
 
-import { type Context, Hono, type Next } from "hono"
+import { type Context, Hono, type MiddlewareHandler, type Next } from "hono"
 import { createMiddleware } from "hono/factory"
 import { HTTPException } from "hono/http-exception"
 import type { StatusCode } from "hono/utils/http-status"
@@ -260,7 +260,9 @@ export type UseGuard = {
   use: (ctx: Context, next: Next) => Promise<void>
 }
 
-export function middlewareFactory(Middleware: new () => UseGuard) {
+export function middlewareFactory(
+  Middleware: new () => UseGuard,
+): MiddlewareHandler<any, string, {}> {
   return createMiddleware(async (ctx: Context, next: Next) => {
     try {
       await new Middleware().use(ctx, next)

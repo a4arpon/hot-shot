@@ -29,6 +29,12 @@
       },
       "correctness": {
         "noUnusedVariables": "warn"
+      },
+      "complexity": {
+        "noBannedTypes": "warn"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn"
       }
     }
   },
