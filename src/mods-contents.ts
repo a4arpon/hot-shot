@@ -1,22 +1,28 @@
-export function nameFixer(moduleName: string, isClassName: boolean = true): string {
-    const words = moduleName.split("-");
-    const fixedName = words.map((word, index) =>
-        index === 0
-            ? word.toLowerCase()
-            : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    ).join("");
+export function nameFixer(
+  moduleName: string,
+  isClassName: boolean = true,
+): string {
+  const words = moduleName.split("-");
+  const fixedName = words.map((word, index) =>
+    index === 0
+      ? word.toLowerCase()
+      : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join("");
 
-    return isClassName
-        ? fixedName.charAt(0).toUpperCase() + fixedName.slice(1)
-        : fixedName;
+  return isClassName
+    ? fixedName.charAt(0).toUpperCase() + fixedName.slice(1)
+    : fixedName;
 }
 
-export function generateRouterFile(moduleName: string, _fileExtension: string): string {
-    const routerClassName = nameFixer(moduleName, true);
-    const controllerClassName = nameFixer(moduleName, true) + 'Controller';
-    const controllerMethodName = nameFixer(moduleName, false);
+export function generateRouterFile(
+  moduleName: string,
+  _fileExtension: string,
+): string {
+  const routerClassName = nameFixer(moduleName, true);
+  const controllerClassName = nameFixer(moduleName, true) + "Controller";
+  const controllerMethodName = nameFixer(moduleName, false);
 
-    return `
+  return `
 import type {Hono} from "hono";
 import {router, routerContainer} from "@a4arpon/hotshot";
 import {${controllerClassName}} from "./controller";
@@ -33,14 +39,18 @@ export class ${routerClassName}Router {
 
     defaultRoutes() {
 
-        const ${nameFixer(moduleName, false)}Controller = new ${controllerClassName}()
+        const ${
+    nameFixer(moduleName, false)
+  }Controller = new ${controllerClassName}()
 
         return router({
             basePath: '/',
             routes: [{
                 path: '/',
                 method: "GET",
-                controller: ${nameFixer(moduleName, false)}Controller.${controllerMethodName}
+                controller: ${
+    nameFixer(moduleName, false)
+  }Controller.${controllerMethodName}
             }]
         })
     }
@@ -49,17 +59,17 @@ export class ${routerClassName}Router {
 }
 
 export function generateControllerFile(
-    moduleName: string,
-    _fileExtension: string,
+  moduleName: string,
+  _fileExtension: string,
 ): string {
-    const controllerClassName = nameFixer(moduleName, true) + 'Controller';
-    const controllerFileName = nameFixer(moduleName, false);
-    const serviceName = nameFixer(moduleName, true) + "Services";
-    const serviceMethodName = nameFixer(moduleName, false);
+  const controllerClassName = nameFixer(moduleName, true) + "Controller";
+  const controllerFileName = nameFixer(moduleName, false);
+  const serviceName = nameFixer(moduleName, true) + "Services";
+  const serviceMethodName = nameFixer(moduleName, false);
 
-    return `
+  return `
 import type {Context} from "hono";
-import {${serviceName}} from "./services";
+import {${serviceName}} from "./${moduleName}.services";
 
 export class ${controllerClassName} {
     private readonly ${nameFixer(moduleName, false)}Services: ${serviceName}
@@ -69,19 +79,21 @@ export class ${controllerClassName} {
     }
 
     ${controllerFileName} = async (ctx: Context) => {
-        return this.${nameFixer(moduleName, false)}Services.${serviceMethodName}()
+        return this.${
+    nameFixer(moduleName, false)
+  }Services.${serviceMethodName}()
     }
 }
 `;
 }
 
 export function generateServicesFile(
-    moduleName: string,
+  moduleName: string,
 ): string {
-    const servicesClassName = nameFixer(moduleName, true) + "Services";
-    const serviceMethodName = nameFixer(moduleName, false);
+  const servicesClassName = nameFixer(moduleName, true) + "Services";
+  const serviceMethodName = nameFixer(moduleName, false);
 
-    return `
+  return `
 import {response} from "@a4arpon/hotshot";
 
 export class ${servicesClassName} {

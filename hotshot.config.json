@@ -1,0 +1,34 @@
+{
+  "registry": "https://github.com/a4arpon/hot-shot/registry.json",
+  "projectType": "ts",
+  "contains": {
+    "mods": [
+      {
+        "type": "router",
+        "name": "products",
+        "path": "./src/mods/products-mod",
+        "contains": [
+          "router",
+          "controller",
+          "services"
+        ],
+        "services": [
+          "products.services"
+        ]
+      },
+      {
+        "type": "router",
+        "name": "cart",
+        "path": "./src/mods/cart-mod",
+        "contains": [
+          "router",
+          "controller",
+          "services"
+        ],
+        "services": [
+          "cart.services"
+        ]
+      }
+    ]
+  }
+}
