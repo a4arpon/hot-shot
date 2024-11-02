@@ -103,3 +103,34 @@ export class ${servicesClassName} {
 }
 `;
 }
+
+export function generateMiddlewareContent(
+  middlewareName: string,
+  type: string,
+) {
+  return `
+    import { middleWareExceptionResponse, response } from "@a4arpon/hotshot"
+    
+    
+    const exceptionRoutes = ["exception-route"]
+    
+    export const ${
+    nameFixer(middlewareName + type, true)
+  } = async (ctx: Context, next: () => Promise<void>) => {
+    try {
+    /*
+    | ----------------------------------------------------------------------
+    | Exception Routes
+    | ----------------------------------------------------------------------
+    */
+    if (exceptionRoutes.includes(ctx.req.path.split("/").at(-1) ?? "")) {
+      await next()
+    }
+
+      await next()
+    } catch (e) {
+      return middleWareExceptionResponse(ctx, e)
+    }
+  })
+  `;
+}

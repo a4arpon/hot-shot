@@ -13,7 +13,9 @@
           "services"
         ],
         "services": [
-          "products.services"
+          "products.services",
+          "reviews.services.js",
+          "admin-products.services"
         ]
       },
       {
@@ -27,6 +29,22 @@
         ],
         "services": [
           "cart.services"
+        ]
+      },
+      {
+        "type": "router",
+        "name": "auth-user",
+        "path": "./src/mods/auth-user-mod",
+        "contains": [
+          "router",
+          "controller",
+          "services"
+        ],
+        "services": [
+          "auth-user.services",
+          "token.services.js",
+          "verfication.services.js",
+          "misc.services.js"
         ]
       }
     ]

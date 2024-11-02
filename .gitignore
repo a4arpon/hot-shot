@@ -177,3 +177,9 @@ dist
 
 build
 build/*
+
+src/mods/*
+src/mods/*/*
+src/mods/*/*/*
+src/mods/*/*/*/*
+src/mods/*/*/*/*/*

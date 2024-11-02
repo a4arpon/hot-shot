@@ -1,6 +1,10 @@
 # Hot Shot
 
-## Build Fast, Ship Faster
+## Hottest framework on planet earth for building scalable web applications server.
+
+**If you're on other planets you can use it too. Just use Bun only for now.**
+
+## Build Fast, Ship Faster, But This Framework Is More Faster than Your Crush Rejects Your Proposal.
 
 Welcome to **Hot Shot**, a meta-framework built on top of
 [Hono](https://honojs.dev/), inspired by the best features of AdonisJS and

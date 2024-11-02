@@ -1,27 +1,16 @@
 #!/usr/bin/env node
 
-// Import necessary functions and utilities
-import { parseArgs } from "node:util";
-import { generateModule, generateService } from "./mod-manager.ts";
 import minimist from "minimist";
+import { generateModule, generateService } from "./mod-manager.ts";
 
-// Command parsing with positional argument support
-const { values, positionals } = parseArgs({
-  args: process.argv.slice(2),
-  options: {
-    js: { type: "boolean" },
-    ts: { type: "boolean" },
-  },
-  allowPositionals: true,
-});
+const argv = minimist(process.argv.slice(2));
 
-// Determine the project type based on `--js` or `--ts`
 let projectType: string;
-if (values.ts) {
+if (argv.ts) {
   projectType = "ts";
-} else if (values.js) {
+} else if (argv.js) {
   projectType = "js";
-} else if (positionals[0] !== "g" && positionals[0] !== "reload") {
+} else if (argv._[0] !== "g" && argv._[0] !== "reload") {
   // If no project type is specified, but the command is not 'g', show error
   console.error(
     "Error: Please specify either --js or --ts for non-'g' commands.",
@@ -30,17 +19,17 @@ if (values.ts) {
 }
 
 // Check for the command as a positional argument
-const command = positionals[0];
+const command = argv._[0];
 
 switch (command) {
   case "reload":
-    console.log(`Reloading with project type: `);
+    console.log(`Reloading with project type`);
     break;
 
   case "g":
     // Generate command
-    const generateCommand = positionals[1];
-    const generateOptions = positionals.slice(2);
+    const generateCommand = argv._[1];
+    const generateOptions = argv._.slice(2);
 
     switch (generateCommand) {
       case "mod":
@@ -57,28 +46,44 @@ switch (command) {
         break;
 
       case "service":
-        // Generate Service
         if (generateOptions.length === 0) {
           console.error(
             "Error: Please specify a service name for 'g service' command.",
           );
           process.exit(1);
         }
-        const argv = minimist(process.argv.slice(2));
-        const serviceName = argv._[2]; // Access the service name
-        const modName = argv.mod; // Access the --mod option value
-        if (!modName) {
+        const serviceName = generateOptions[0];
+
+        if (!argv.mod) {
           console.error(
             "Error: Please specify a module name using '--mod' for 'g service' command.",
           );
           process.exit(1);
         }
-        await generateService(modName, serviceName);
+        await generateService(argv.mod, serviceName);
+        break;
+
+      case "middleware":
+        if (generateOptions.length === 0) {
+          console.error(
+            "Error: Please specify a service name for 'g service' command.",
+          );
+          process.exit(1);
+        }
+        const middlewareName = generateOptions[0];
+
+        if (!argv.mod) {
+          console.error(
+            "Error: Please specify a module name using '--mod' for 'g service' command.",
+          );
+          process.exit(1);
+        }
+        await generateService(argv.mod, middlewareName);
         break;
 
       default:
         console.log(
-          `Unknown generate command: ${generateCommand}. Usage: hotshot g mod <module_name>`,
+          `Unknown generate command: ${generateCommand}. Usage: hotshot g mod <module_name> | hotshot g service <service_name> --mod=<module_name>`,
         );
         break;
     }
@@ -87,6 +92,6 @@ switch (command) {
   default:
     console.log(`Unknown command: ${command}. Usage: 
             hotshot reload --js or --ts
-            hotshot g mod <module_name>`);
+            hotshot g mod <module_name> | hotshot g service <service_name> --mod=<module_name>`);
     break;
 }
