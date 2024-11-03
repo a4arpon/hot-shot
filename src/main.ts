@@ -2,9 +2,11 @@
 
 import minimist from "minimist"
 import {
+  generateCacheDriver,
   generateMiddleware,
   generateModule,
   generateService,
+  queueWorkerGenerator,
 } from "./mod-creator.ts"
 
 const argv = minimist(process.argv.slice(2))
@@ -68,9 +70,36 @@ switch (command) {
         break
       }
 
+      case "queue": {
+        if (generateOptions.length === 0) {
+          console.error(
+            "Error: Please specify a queue name for 'g queue' command.",
+          )
+          process.exit(1)
+        }
+        const queueName = generateOptions[0]
+
+        await queueWorkerGenerator(queueName)
+        break
+      }
+
+      case "cache": {
+        if (generateOptions.length === 0) {
+          console.error(
+            "Error: Please specify a cache driver name for 'g cache' command.",
+          )
+          process.exit(1)
+        }
+        const cacheDriverName = generateOptions[0]
+
+        await generateCacheDriver(cacheDriverName)
+        break
+      }
+
       default:
         console.log(
-          `Unknown generate command: ${generateCommand}. Usage: hotshot g mod <module_name> | hotshot g service <service_name> --mod=<module_name> | hotshot g middleware <middleware_name> --mod=<module_name>`,
+          `Unknown generate command: ${generateCommand}. Usage: 
+          hotshot g mod <module_name> | hotshot g service <service_name> --mod=<module_name> | hotshot g guard <guard_name> | hotshot g queue <queue_name> | hotshot g cache <cache_driver_name>`,
         )
         break
     }

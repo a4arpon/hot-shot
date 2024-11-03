@@ -105,13 +105,14 @@ export class ${servicesClassName} {
 }
 
 export function generateMiddlewareFile(middlewareName: string): string {
-  const middlewareClassName = `${nameFixer(middlewareName, true)}Middleware`
+  const middlewareClassName = `${nameFixer(middlewareName, true)}Guard`
   return `
 import { type UseGuard, HTTPStatus } from "@a4arpon/hotshot";
+import type {Context, Next} from "hono";
 
 export class ${middlewareClassName} implements UseGuard {
   async use(ctx: Context, next: Next) {
-    if (ctx.req.path === "/${middlewareName.toLowerCase()}-middleware") {
+    if (ctx.req.path === "/${middlewareName.toLowerCase()}-guard") {
       throw new HTTPException(HTTPStatus.BadRequest, {
         message: "You're hitting on a dummy route",
       });
@@ -121,4 +122,106 @@ export class ${middlewareClassName} implements UseGuard {
     await next();
   }
 }`
+}
+
+export function generateWorkerFile(workerName: string): string {
+  const workerClassName = `${nameFixer(workerName, true)}Queue`
+
+  return `
+import { type Job, Worker } from "bullmq"
+import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn"
+
+export class ${workerClassName}Worker {
+  public readonly worker: Worker
+
+  constructor() {
+    this.worker = new Worker(
+      mailQueue.name,
+      async (job: Job) => this.processing(job),
+      {
+        autorun: false,
+        connection: redis,
+      },
+    )
+
+    this.worker.on("ready", this.ready)
+    this.worker.on("failed", (job, err) => this.failed(err, job))
+    this.worker.on("completed", (job) => this.completed(job))
+  }
+
+  private failed(err: Error, job?: Job) {
+    if (job) {
+      console.error(${workerName}Queue.name, "Job Failed :", job.id, err)
+    } else {
+      console.error(mailQueue.name, "Job Not Found :", err)
+    }
+  }
+
+  private ready = () => {
+    console.log(${workerName}Queue.name, "Ready...")
+  }
+
+  private completed(job: Job) {
+    console.log(${workerName}Queue.name, "Job Completed :", job.id)
+  }
+
+  /*
+   * ---------------------------------------------------------------------
+   * Queue Processing Function
+   *
+   * This function is called by the queue worker when a job is processed.
+   * The job is passed as a parameter.
+   * Write your processing logic here.
+   * ---------------------------------------------------------------------
+   */
+
+  private async processing(job: Job) {
+    console.log(job.data)
+  }
+}
+`
+}
+
+export function generateCacheDriverContent(cacheDriverName: string): string {
+  const cacheDriverClassName = `${nameFixer(cacheDriverName, true)}CacheDriver`
+
+  return `
+  import { cacheNameGen, cacheResponse } from "#libs/ioredis-json"
+
+export class ${cacheDriverClassName} {
+  public readonly cachePartition = "${nameFixer(cacheDriverName, false)}-cache"
+
+  async create<T>(key: string, payload: T) {
+    return cacheResponse(
+      cacheNameGen(this.cachePartition, key),
+      null,
+      false,
+    )
+  }
+
+  async get(key: string) {
+    return cacheResponse(
+      cacheNameGen(this.cachePartition, key),
+      null,
+      false,
+    )
+  }
+
+  async update<T>(key: string, payload: T) {
+    return cacheResponse(
+      cacheNameGen(this.cachePartition, key),
+      null,
+      false,
+    )
+  }
+
+  async delete(key: string) {
+    return cacheResponse(
+      cacheNameGen(this.cachePartition, key),
+      null,
+      false,
+    )
+  }
+}
+`
 }

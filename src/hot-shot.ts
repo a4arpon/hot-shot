@@ -141,7 +141,7 @@ type RouteDefinition = {
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
   path: string
   controller: (ctx: Context) => Promise<ApiResponse>
-  middlewares?: MiddlewareType[]
+  useGuards?: MiddlewareType[]
 }
 
 export function router({
@@ -162,7 +162,7 @@ export function router({
     method,
     path,
     controller,
-    middlewares: rawMiddlewares = [],
+    useGuards: rawMiddlewares = [],
   } of routes) {
     const middlewares = rawMiddlewares.map((middleware: MiddlewareType) =>
       middlewareFactory(middleware),

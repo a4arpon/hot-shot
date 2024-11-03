@@ -1,10 +1,12 @@
 import fs from "node:fs"
 import path from "node:path"
 import {
+  generateCacheDriverContent,
   generateControllerFile,
   generateMiddlewareFile,
   generateRouterFile,
   generateServicesFile,
+  generateWorkerFile,
   nameFixer,
 } from "./mods-contents.ts"
 
@@ -195,7 +197,7 @@ export async function generateService(modName: string, serviceName: string) {
   const config = JSON.parse(configFileContent)
 
   // Find the module directory path
-  const mod = config.contains.mods.find(
+  const mod = config.contains?.mods?.find(
     (m: { name: string }) => m.name === modName,
   )
   if (!mod) {
@@ -242,7 +244,7 @@ export async function generateService(modName: string, serviceName: string) {
  */
 
 export async function generateMiddleware(middlewareName: string) {
-  console.log(`Middleware Name: ${middlewareName}`)
+  console.log(`UseGuard Name: ${middlewareName}`)
 
   // Load config file
   const configPath = path.join(process.cwd(), "hotshot.config.json")
@@ -253,10 +255,10 @@ export async function generateMiddleware(middlewareName: string) {
   const middlewareContent = generateMiddlewareFile(middlewareName)
 
   // Create middleware file path
-  const middlewareFileName = `${middlewareName}.middleware${
+  const middlewareFileName = `${middlewareName}.guard${
     config.projectType === "ts" ? ".ts" : ".js"
   }`
-  const middlewareDirPath = path.join("./src", "middlewares")
+  const middlewareDirPath = path.join("./src", "use-guards")
   const middlewareFilePath = path.join(middlewareDirPath, middlewareFileName)
 
   // Create middlewares directory if it doesn't exist
@@ -265,25 +267,150 @@ export async function generateMiddleware(middlewareName: string) {
     console.log(`Created directory: ${middlewareDirPath}`)
   }
 
+  // Check for duplicate middleware name
+  if (
+    config.contains?.useGuards?.find(
+      (m: { name: string }) => m.name === middlewareName,
+    )
+  ) {
+    console.error(
+      `Error: UseGuard '${middlewareName}' already exists in config.`,
+    )
+    return
+  }
+
   // Write the new middleware file
   fs.writeFileSync(middlewareFilePath, middlewareContent)
-  console.log(`Created new middleware file: ${middlewareFilePath}`)
+  console.log(`Created new useGuard file: ${middlewareFilePath}`)
 
   // Update the config file with the new middleware
-  if (!config.contains.middlewares) {
-    config.contains.middlewares = []
+  if (!config.contains.useGuards) {
+    config.contains.useGuards = []
   }
-  config.contains.middlewares.push({
+
+  config.contains.useGuards.push({
     name: middlewareName,
-    path: `./src/middlewares/${middlewareFileName.replace(
+    path: `./src/use-guards/${middlewareFileName.replace(
       `.${config.projectType}`,
       "",
-    )}
     )}`,
   })
   const updatedConfigContent = JSON.stringify(config, null, 2)
   fs.writeFileSync(configPath, updatedConfigContent)
   console.log("Updated config file with new middleware.")
+}
+
+export async function queueWorkerGenerator(workerName: string) {
+  console.log(`Worker Name: ${workerName}`)
+
+  // Load config file
+  const configPath = path.join(process.cwd(), "hotshot.config.json")
+  const configFileContent = await fs.promises.readFile(configPath, "utf8")
+  const config = JSON.parse(configFileContent)
+
+  // Generate Worker Contents
+  const workerContent = generateWorkerFile(workerName)
+
+  // Create worker file path
+  const workerFileName = `${workerName}.worker${
+    config.projectType === "ts" ? ".ts" : ".js"
+  }`
+
+  const workerDirPath = path.join("./src", "queues")
+  const workerFilePath = path.join(workerDirPath, workerFileName)
+
+  // Create workers directory if it doesn't exist
+  if (!fs.existsSync(workerDirPath)) {
+    fs.mkdirSync(workerDirPath, { recursive: true })
+    console.log(`Created directory: ${workerDirPath}`)
+  }
+
+  // Check for duplicate worker name
+  if (
+    config.contains?.queues?.find(
+      (m: { name: string }) => m.name === workerName,
+    )
+  ) {
+    console.error(`Error: Worker '${workerName}' already exists in config.`)
+    return
+  }
+
+  // Write the new worker file
+  fs.writeFileSync(workerFilePath, workerContent)
+  console.log(`Created new worker file: ${workerFilePath}`)
+
+  // Update the config file with the new worker
+  if (!config.contains.queues) {
+    config.contains.queues = []
+  }
+  config.contains.queues.push({
+    core: "Redis",
+    engine: "BullMQ",
+    name: workerName,
+    path: `./src/queues/${workerFileName.replace(`.${config.projectType}`, "")}`,
+  })
+  const updatedConfigContent = JSON.stringify(config, null, 2)
+  fs.writeFileSync(configPath, updatedConfigContent)
+  console.log("Updated config file with new worker.")
+}
+
+export async function generateCacheDriver(cacheDriverName: string) {
+  console.log(`Cache Driver Name: ${cacheDriverName}`)
+
+  // Load config file
+  const configPath = path.join(process.cwd(), "hotshot.config.json")
+  const configFileContent = await fs.promises.readFile(configPath, "utf8")
+  const config = JSON.parse(configFileContent)
+
+  // Generate Cache Driver Contents
+  const cacheDriverContent = generateCacheDriverContent(cacheDriverName)
+
+  // Create cache driver file path
+  const cacheDriverFileName = `${cacheDriverName}.cache${
+    config.projectType === "ts" ? ".ts" : ".js"
+  }`
+
+  const cacheDriverDirPath = path.join("./src", "cache-drivers")
+  const cacheDriverFilePath = path.join(cacheDriverDirPath, cacheDriverFileName)
+
+  // Create cache drivers directory if it doesn't exist
+  if (!fs.existsSync(cacheDriverDirPath)) {
+    fs.mkdirSync(cacheDriverDirPath, { recursive: true })
+    console.log(`Created directory: ${cacheDriverDirPath}`)
+  }
+
+  // Check for duplicate cache driver name
+  if (
+    config.contains?.cacheDrivers?.find(
+      (m: { name: string }) => m.name === cacheDriverName,
+    )
+  ) {
+    console.error(
+      `Error: Cache Driver '${cacheDriverName}' already exists in config.`,
+    )
+    return
+  }
+
+  // Write the new cache driver file
+  fs.writeFileSync(cacheDriverFilePath, cacheDriverContent)
+  console.log(`Created new cache driver file: ${cacheDriverFilePath}`)
+
+  // Update the config file with the new cache driver
+  if (!config.contains.cacheDrivers) {
+    config.contains.cacheDrivers = []
+  }
+
+  config.contains.cacheDrivers.push({
+    core: "Redis",
+    name: cacheDriverName,
+    path: `./src/cache-drivers/${cacheDriverFileName.replace(
+      `.${config.projectType}`,
+      "",
+    )}`,
+  })
+  const updatedConfigContent = JSON.stringify(config, null, 2)
+  fs.writeFileSync(configPath, updatedConfigContent)
+  console.log("Updated config file with new cache driver.")
 }
 
 /*
