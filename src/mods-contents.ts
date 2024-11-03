@@ -131,12 +131,22 @@ export function generateWorkerFile(workerName: string): string {
 import { type Job, Worker } from "bullmq"
 import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn"
 
+/*
+*
+* Queue Name: ${nameFixer(workerName, false)}Queue
+* Important Note: You must create a Bull Queue with the same name as 
+* the queue name ${nameFixer(workerName, false)}Queue in your
+* #libs/conn.ts file. After creating the queue, you can remove this
+* comment.
+* 
+*/
+
 export class ${workerClassName}Worker {
   public readonly worker: Worker
 
   constructor() {
     this.worker = new Worker(
-      mailQueue.name,
+      ${workerName}Queue.name,
       async (job: Job) => this.processing(job),
       {
         autorun: false,
@@ -153,7 +163,7 @@ export class ${workerClassName}Worker {
     if (job) {
       console.error(${workerName}Queue.name, "Job Failed :", job.id, err)
     } else {
-      console.error(mailQueue.name, "Job Not Found :", err)
+      console.error(${workerName}Queue.name, "Job Not Found :", err)
     }
   }
 
