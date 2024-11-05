@@ -4,6 +4,7 @@ import {
   generateCacheDriverContent,
   generateControllerFile,
   generateMiddlewareFile,
+  generateOpenApiSpecContent,
   generateRouterFile,
   generateServicesFile,
   generateWorkerFile,
@@ -411,6 +412,64 @@ export async function generateCacheDriver(cacheDriverName: string) {
   const updatedConfigContent = JSON.stringify(config, null, 2)
   fs.writeFileSync(configPath, updatedConfigContent)
   console.log("Updated config file with new cache driver.")
+}
+
+export async function generateOpenApiSpec(specName: string) {
+  console.log(`OpenApi Spec Name: ${specName}`)
+
+  // Load config file
+  const configPath = path.join(process.cwd(), "hotshot.config.json")
+  const configFileContent = await fs.promises.readFile(configPath, "utf8")
+  const config = JSON.parse(configFileContent)
+
+  // Generate OpenApi Spec Contents
+  const openApiSpecContent = generateOpenApiSpecContent(specName)
+
+  // Create OpenApi Spec file path
+  const openApiSpecFileName = `${specName}.openapi${
+    config.projectType === "ts" ? ".ts" : ".js"
+  }`
+
+  const openApiSpecDirPath = path.join("./src", "open-api")
+  const openApiSpecFilePath = path.join(openApiSpecDirPath, openApiSpecFileName)
+
+  // Create OpenApi Specs directory if it doesn't exist
+  if (!fs.existsSync(openApiSpecDirPath)) {
+    fs.mkdirSync(openApiSpecDirPath, { recursive: true })
+    console.log(`Created directory: ${openApiSpecDirPath}`)
+  }
+
+  // Check for duplicate OpenApi Spec name
+  if (
+    config.contains?.openApiSpecs?.find(
+      (m: { name: string }) => m.name === specName,
+    )
+  ) {
+    console.error(
+      `Error: OpenApi Spec '${specName}' already exists in config.`,
+    )
+    return
+  }
+
+  // Write the new OpenApi Spec file
+  fs.writeFileSync(openApiSpecFilePath, openApiSpecContent)
+  console.log(`Created new OpenApi Spec file: ${openApiSpecFilePath}`)
+
+  // Update the config file with the new OpenApi Spec
+  if (!config.contains.openApiSpecs) {
+    config.contains.openApiSpecs = []
+  }
+
+  config.contains.openApiSpecs.push({
+    name: specName,
+    path: `./src/open-api/${openApiSpecFileName.replace(
+      `.${config.projectType}`,
+      "",
+    )}`,
+  })
+  const updatedConfigContent = JSON.stringify(config, null, 2)
+  fs.writeFileSync(configPath, updatedConfigContent)
+  console.log("Updated config file with new OpenApi Spec.")
 }
 
 /*

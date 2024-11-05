@@ -5,6 +5,7 @@ import {
   generateCacheDriver,
   generateMiddleware,
   generateModule,
+  generateOpenApiSpec,
   generateService,
   queueWorkerGenerator,
 } from "./mod-creator.ts"
@@ -96,9 +97,21 @@ switch (command) {
         break
       }
 
+      case "openapi": {
+        if (generateOptions.length === 0) {
+          console.error(
+            "Error: Please specify an OpenApi Spec name for 'g openapi' command.",
+          )
+          process.exit(1)
+        }
+        const specName = generateOptions[0]
+        await generateOpenApiSpec(specName)
+        break
+      }
+
       default:
         console.log(
-          `Unknown generate command: ${generateCommand}. Usage: 
+          `Unknown generate command: ${generateCommand}. Usage:
           hotshot g mod <module_name> | hotshot g service <service_name> --mod=<module_name> | hotshot g guard <guard_name> | hotshot g queue <queue_name> | hotshot g cache <cache_driver_name>`,
         )
         break
@@ -107,7 +120,7 @@ switch (command) {
   }
 
   default:
-    console.log(`Unknown command: ${command}. Usage: 
+    console.log(`Unknown command: ${command}. Usage:
             hotshot reload --js or --ts
             hotshot g mod <module_name> | hotshot g service <service_name> --mod=<module_name>`)
     break

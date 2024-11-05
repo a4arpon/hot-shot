@@ -134,11 +134,11 @@ import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn"
 /*
 *
 * Queue Name: ${nameFixer(workerName, false)}Queue
-* Important Note: You must create a Bull Queue with the same name as 
+* Important Note: You must create a Bull Queue with the same name as
 * the queue name ${nameFixer(workerName, false)}Queue in your
 * #libs/conn.ts file. After creating the queue, you can remove this
 * comment.
-* 
+*
 */
 
 export class ${workerClassName}Worker {
@@ -234,4 +234,82 @@ export class ${cacheDriverClassName} {
   }
 }
 `
+}
+
+export function generateOpenApiSpecContent(specName: string): string {
+  const openAPISpecClassName = `${nameFixer(specName, true)}OpenApiSpecs`
+
+  return `
+  import type { ApiSpecs, UseOpenApi } from "#libs/open-api"
+  import { z } from "zod"
+
+  export class ${openAPISpecClassName} implements UseOpenApi {
+    public readonly specs: ApiSpecs[]
+
+    constructor() {
+      this.specs = [
+        this.getItems,
+        this.getItem,
+        this.addItem,
+        this.patchItem,
+        this.updateItem,
+        this.deleteItem,
+      ]
+    }
+
+    private getItems: ApiSpecs = {
+      method: "GET",
+      path: "/${specName}",
+      tags: ["${nameFixer(specName, true)}"],
+      summery: "Get all items from server",
+    }
+
+    private getItem: ApiSpecs = {
+      method: "GET",
+      path: "/${specName}/:blogSlug",
+      pathParams: ["${nameFixer(specName, false)}Slug"],
+      tags: ["${nameFixer(specName, true)}"],
+      summery: "Get single ${nameFixer(specName, true)} from server",
+    }
+
+    private addItem: ApiSpecs = {
+      method: "POST",
+      path: "/${specName}",
+      tags: ["${nameFixer(specName, true)}"],
+      summery: "Add new ${nameFixer(specName, true)}",
+      requestBody: z.object({
+        title: z.string(),
+        tags: z.array(z.string()).nullable(),
+      }),
+    }
+
+    private patchItem: ApiSpecs = {
+      method: "PATCH",
+      path: "/${specName}/:blogSlug",
+      pathParams: ["${nameFixer(specName, false)}Slug"],
+      queryParams: ["${nameFixer(specName, false)}Status"],
+      tags: ["${nameFixer(specName, true)}"],
+      summery: "Add a little patch in the data",
+    }
+
+    private updateItem: ApiSpecs = {
+      method: "PUT",
+      path: "/${specName}/:${nameFixer(specName, false)}Slug",
+      pathParams: ["${nameFixer(specName, false)}Slug"],
+      tags: ["${nameFixer(specName, true)}"],
+      summery: "Update  ${nameFixer(specName, true)}",
+      requestBody: z.object({
+        title: z.string(),
+      }),
+    }
+
+    private deleteItem: ApiSpecs = {
+      method: "DELETE",
+      path: "/${specName}/:${nameFixer(specName, false)}Slug",
+      pathParams: ["${nameFixer(specName, false)}Slug"],
+      tags: ["${nameFixer(specName, true)}"],
+      summery: "Delete single ${nameFixer(specName, true)}",
+    }
+  }
+  `
 }
