@@ -112,7 +112,7 @@ switch (command) {
       default:
         console.log(
           `Unknown generate command: ${generateCommand}. Usage:
-          hotshot g mod <module_name> | hotshot g service <service_name> --mod=<module_name> | hotshot g guard <guard_name> | hotshot g queue <queue_name> | hotshot g cache <cache_driver_name>`,
+          hotshot g mod <module_name> | hotshot g service <service_name> --mod=<module_name> | hotshot g guard <guard_name> | hotshot g queue <queue_name> | hotshot g cache <cache_driver_name> | hotshot g openapi <openapi_spec_name>`,
         )
         break
     }

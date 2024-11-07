@@ -243,6 +243,26 @@ export function generateOpenApiSpecContent(specName: string): string {
   import type { ApiSpecs, UseOpenApi } from "#libs/open-api"
   import { z } from "zod"
 
+  /*
+   * ------------------------------------------------------------------------
+   * Open API Specs
+   *
+   * Some Key Points -
+   * 1. To use path params, you need to use the path param syntax in the path
+   * and the path param name in the pathParams array.
+   * Example: path: "/author/{authorSlug}", pathParams: ["authorSlug"]
+   * Second brackets {} are used to define the path param syntax.
+   *
+   * 2. To define a request body, you need to define it as a ZodSchema and
+   * pass it to the requestBody property.
+   * Example: requestBody: z.object({ title: z.string() })
+   *
+   * Tips: In this project we are using Drizzle-ORM, so we can easilty inherit
+   * the ZodSchema from the drizzle-orm.
+   * Doc Link: https://orm.drizzle.team/docs/zod
+   * ------------------------------------------------------------------------
+   */
+
   export class ${openAPISpecClassName} implements UseOpenApi {
     public readonly specs: ApiSpecs[]
 
@@ -266,7 +286,7 @@ export function generateOpenApiSpecContent(specName: string): string {
 
     private getItem: ApiSpecs = {
       method: "GET",
-      path: "/${specName}/:blogSlug",
+      path: "/${specName}/{${nameFixer(specName, false)}Slug}",
       pathParams: ["${nameFixer(specName, false)}Slug"],
       tags: ["${nameFixer(specName, true)}"],
       summery: "Get single ${nameFixer(specName, true)} from server",
@@ -285,7 +305,7 @@ export function generateOpenApiSpecContent(specName: string): string {
 
     private patchItem: ApiSpecs = {
       method: "PATCH",
-      path: "/${specName}/:blogSlug",
+      path: "/${specName}/{${nameFixer(specName, false)}Slug}",
       pathParams: ["${nameFixer(specName, false)}Slug"],
       queryParams: ["${nameFixer(specName, false)}Status"],
       tags: ["${nameFixer(specName, true)}"],
@@ -294,7 +314,7 @@ export function generateOpenApiSpecContent(specName: string): string {
 
     private updateItem: ApiSpecs = {
       method: "PUT",
-      path: "/${specName}/:${nameFixer(specName, false)}Slug",
+      path: "/${specName}/{${nameFixer(specName, false)}Slug}",
       pathParams: ["${nameFixer(specName, false)}Slug"],
       tags: ["${nameFixer(specName, true)}"],
       summery: "Update  ${nameFixer(specName, true)}",
@@ -305,7 +325,7 @@ export function generateOpenApiSpecContent(specName: string): string {
 
     private deleteItem: ApiSpecs = {
       method: "DELETE",
-      path: "/${specName}/:${nameFixer(specName, false)}Slug",
+      path: "/${specName}/{${nameFixer(specName, false)}Slug}",
       pathParams: ["${nameFixer(specName, false)}Slug"],
       tags: ["${nameFixer(specName, true)}"],
       summery: "Delete single ${nameFixer(specName, true)}",
