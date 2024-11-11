@@ -23,7 +23,7 @@ export function generateRouterFile(
 
   return `
 import type {Hono} from "hono";
-import {router, routerContainer} from "@a4arpon/hotshot";
+import {router, routerContainer, route} from "@a4arpon/hotshot";
 import {${controllerClassName}} from "./controller";
 
 export class ${routerClassName}Router {
@@ -45,14 +45,10 @@ export class ${routerClassName}Router {
 
         return router({
             basePath: '/',
-            routes: [{
-                path: '/',
-                method: "GET",
-                controller: ${nameFixer(
-                  moduleName,
-                  false,
-                )}Controller.${controllerMethodName}
-            }]
+            routers: [
+               route("GET")
+                .controller(${nameFixer(moduleName,false)}Controller.${controllerMethodName}),
+           ],
         })
     }
 }

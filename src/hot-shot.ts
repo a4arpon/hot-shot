@@ -57,6 +57,12 @@ export const HTTPStatus = {
 
 /**********************************
  * Response Function 🔥
+ *
+ * @param message - The message to be displayed to the user.
+ * @param data - The data to be returned to the user.
+ * @param extra - Additional information to be included in the response.
+ * @param success - Whether the request was successful or not.
+ * @returns An object containing the response data.
  * ********************************/
 export function response(
   message: string,
@@ -72,9 +78,13 @@ export function response(
   }
 }
 
-/*
-  Exception Response Middleware Function 🔥
-*/
+/**
+ * Exception Response Middleware Function 🔥
+ *
+ * @param ctx - The context object for the current request.
+ * @param e - The error object to be handled.
+ * @returns A response object containing the error message and status code.
+ */
 export function middleWareExceptionResponse(
   ctx: Context,
   e: unknown,
@@ -88,13 +98,12 @@ export function middleWareExceptionResponse(
   return ctx.json(response("Internal server error", null, {}, false))
 }
 
-/*
-|
-|--------------------------------------------------------------------------
-| Safe Async 🔥 : Promise Wrapper
-|--------------------------------------------------------------------------
-|
-*/
+/**
+ * Safe Async 🔥 : Promise Wrapper
+ *
+ * @param func - The function to be wrapped.
+ * @returns A function that handles the promise resolution.
+ */
 
 export const safeAsync = (
   func: (ctx: Context) => Promise<ApiResponse> | ApiResponse,
@@ -149,6 +158,16 @@ export interface RouteBuilder {
   controller(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition;
 }
 
+
+/**
+ * Creates a new route definition.
+ *
+ * @param method - The HTTP method for the route.
+ * @param path - The path for the route.
+ * @method controller - The controller function for the route. Default: () => response("Not Implemented")
+ * @method useGuards - The middleware guards for the route. Default: []
+ * @returns A RouteBuilder object.
+ */
 export function route(
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH",
   path?: string,
@@ -156,7 +175,7 @@ export function route(
   const routeDefinition: RouteDefinition = {
     method,
     path: path ?? "/",
-    controller: async () => response("Not Implemented"),
+    controller: () => response("Not Implemented"),
     useGuards: [],
   }
 
@@ -172,6 +191,15 @@ export function route(
   }
 }
 
+
+/**
+ * Creates a new router.
+ *
+ * @param routes - An array of route definitions.
+ * @param basePath - The base path for the router.
+ * @param routeGuard - The route guard for the router.
+ * @returns A Hono object.
+ */
 export function router({
   routes,
   routeGuard,
@@ -237,6 +265,13 @@ export type RouterConstructor = new () => {
   routes: Hono
 }
 
+
+/**
+ * Creates a new router factory.
+ *
+ * @param routers - An array of router constructors.
+ * @returns A Hono object.
+ */
 export function routerFactory(routers: Array<RouterConstructor>): Hono {
   const factoryInstance = new Hono()
 
@@ -268,6 +303,14 @@ export type RouterContainerOptions = {
   routers: Array<Hono>
 }
 
+
+/**
+ * Creates a new router container.
+ *
+ * @param basePath - The base path for the router container.
+ * @param routers - An array of Hono objects.
+ * @returns A Hono object.
+ */
 export function routerContainer({
   basePath,
   routers,
@@ -295,6 +338,13 @@ export type UseGuard = {
   use: (ctx: Context, next: Next) => Promise<void>
 }
 
+
+/**
+ * Creates a new middleware factory.
+ *
+ * @param Middleware - The middleware class.
+ * @returns A middleware handler function.
+ */
 export function middlewareFactory(
   Middleware: new () => UseGuard,
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
