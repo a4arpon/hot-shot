@@ -144,10 +144,15 @@ export type RouteDefinition = {
   useGuards?: MiddlewareType[]
 }
 
+export interface RouteBuilder {
+  useGuards(...guards: MiddlewareType[]): RouteBuilder;
+  controller(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition;
+}
+
 export function route(
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH",
   path?: string,
-) {
+): RouteBuilder {
   const routeDefinition: RouteDefinition = {
     method,
     path: path ?? "/",
