@@ -97,7 +97,7 @@ export function middleWareExceptionResponse(
 */
 
 export const safeAsync = (
-  func: (ctx: Context) => Promise<ApiResponse>,
+  func: (ctx: Context) => Promise<ApiResponse> | ApiResponse,
 ): ((ctx: Context) => Promise<Response>) => {
   return async (ctx: Context) => {
     try {
@@ -135,13 +135,36 @@ export const safeAsync = (
 |
 */
 
-type MiddlewareType = new () => UseGuard
+export type MiddlewareType = new () => UseGuard
 
-type RouteDefinition = {
+export type RouteDefinition = {
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
   path: string
-  controller: (ctx: Context) => Promise<ApiResponse>
+  controller: (ctx: Context) => Promise<ApiResponse> | ApiResponse
   useGuards?: MiddlewareType[]
+}
+
+export function route(
+  method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH",
+  path?: string,
+) {
+  const routeDefinition: RouteDefinition = {
+    method,
+    path: path ?? "/",
+    controller: async () => response("Not Implemented"),
+    useGuards: [],
+  }
+
+  return {
+    useGuards(...guards: MiddlewareType[]) {
+      routeDefinition.useGuards?.push(...guards)
+      return this
+    },
+    controller(handler: (ctx: Context) => Promise<ApiResponse>) {
+      routeDefinition.controller = handler
+      return routeDefinition
+    },
+  }
 }
 
 export function router({
@@ -153,39 +176,46 @@ export function router({
   basePath?: string | null
   routeGuard?: MiddlewareType
 }): Hono {
-  const controllerRoutes = new Hono().basePath(basePath ?? "")
+    const controllerRoutes = new Hono().basePath(basePath ?? "")
 
-  if (routeGuard) {
-    controllerRoutes.use(middlewareFactory(routeGuard))
-  }
-  for (const {
-    method,
-    path,
-    controller,
-    useGuards: rawMiddlewares = [],
-  } of routes) {
-    const middlewares = rawMiddlewares.map((middleware: MiddlewareType) =>
-      middlewareFactory(middleware),
-    )
-    switch (method) {
-      case "POST":
-        controllerRoutes.post(path, ...middlewares, safeAsync(controller))
-        break
-      case "GET":
-        controllerRoutes.get(path, ...middlewares, safeAsync(controller))
-        break
-      case "PUT":
-        controllerRoutes.put(path, ...middlewares, safeAsync(controller))
-        break
-      case "DELETE":
-        controllerRoutes.delete(path, ...middlewares, safeAsync(controller))
-        break
-      case "PATCH":
-        controllerRoutes.patch(path, ...middlewares, safeAsync(controller))
-        break
+    if (routeGuard) {
+      controllerRoutes.use(middlewareFactory(routeGuard))
     }
-  }
-  return controllerRoutes
+
+    for (const routeDefinition of routes) {
+      const {
+        method,
+        path,
+        controller,
+        useGuards: useGuardsList = [],
+      } = routeDefinition
+
+      const middlewares = useGuardsList.map((middleware: MiddlewareType) =>
+        middlewareFactory(middleware),
+      )
+
+      switch (method) {
+        case "POST":
+          controllerRoutes.post(path, ...middlewares, safeAsync(controller))
+          break
+        case "GET":
+          controllerRoutes.get(path, ...middlewares, safeAsync(controller))
+          break
+        case "PUT":
+          controllerRoutes.put(path, ...middlewares, safeAsync(controller))
+          break
+        case "DELETE":
+          controllerRoutes.delete(path, ...middlewares, safeAsync(controller))
+          break
+        case "PATCH":
+          controllerRoutes.patch(path, ...middlewares, safeAsync(controller))
+          break
+        default:
+          throw new Error(`Unsupported method: ${method}`)
+      }
+    }
+
+    return controllerRoutes
 }
 
 /*
@@ -198,7 +228,7 @@ export function router({
 |--------------------------------------------------------------------------
 |
 */
-type RouterConstructor = new () => {
+export type RouterConstructor = new () => {
   routes: Hono
 }
 
@@ -228,7 +258,7 @@ export function routerFactory(routers: Array<RouterConstructor>): Hono {
 |
 */
 
-type RouterContainerOptions = {
+export type RouterContainerOptions = {
   basePath?: string
   routers: Array<Hono>
 }
@@ -262,6 +292,8 @@ export type UseGuard = {
 
 export function middlewareFactory(
   Middleware: new () => UseGuard,
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+// biome-ignore lint/complexity/noBannedTypes: <explanation>
 ): MiddlewareHandler<any, string, {}> {
   return createMiddleware(async (ctx: Context, next: Next) => {
     try {
