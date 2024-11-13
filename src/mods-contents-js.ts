@@ -55,7 +55,7 @@ export class ${routerClassName}Router {
 `
 }
 
-export function generateControllerFile(
+export function generateControllerFileJS(
   moduleName: string,
   _fileExtension: string,
 ): string {
@@ -69,13 +69,13 @@ import type {Context} from "hono";
 import {${serviceName}} from "./${moduleName}.services";
 
 export class ${controllerClassName} {
-    private readonly ${nameFixer(moduleName, false)}Services: ${serviceName}
+    #${nameFixer(moduleName, false)}Services
 
     constructor() {
-        this.${nameFixer(moduleName, false)}Services = new ${serviceName}()
+        this.#${nameFixer(moduleName, false)}Services = new ${serviceName}()
     }
 
-    ${controllerFileName} = async (ctx: Context) => {
+    ${controllerFileName} = async (ctx) => {
         return this.${nameFixer(
           moduleName,
           false,
@@ -104,10 +104,11 @@ export function generateMiddlewareFile(middlewareName: string): string {
   const middlewareClassName = `${nameFixer(middlewareName, true)}Guard`
   return `
 import { type UseGuard, HTTPStatus } from "@a4arpon/hotshot";
-import type {Context, Next} from "hono";
+import {Context, Next} from "hono";
 
 export class ${middlewareClassName} implements UseGuard {
-  async use(ctx: Context, next: Next) {
+  /** @type {Context, Next} */
+  async use(ctx, next) {
     if (ctx.req.path === "/${middlewareName.toLowerCase()}-guard") {
       throw new HTTPException(HTTPStatus.BadRequest, {
         message: "You're hitting on a dummy route",
@@ -138,24 +139,24 @@ import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn"
 */
 
 export class ${workerClassName}Worker {
-  public readonly worker: Worker
+  public readonly worker
 
   constructor() {
     this.worker = new Worker(
       ${workerName}Queue.name,
-      async (job: Job) => this.processing(job),
+      async (job) => this.#processing(job),
       {
         autorun: false,
         connection: redis,
       },
     )
 
-    this.worker.on("ready", this.ready)
-    this.worker.on("failed", (job, err) => this.failed(err, job))
-    this.worker.on("completed", (job) => this.completed(job))
+    this.worker.on("ready", this.#ready)
+    this.worker.on("failed", (job, err) => this.#failed(err, job))
+    this.worker.on("completed", (job) => this.#completed(job))
   }
 
-  private failed(err: Error, job?: Job) {
+  #failed(err, job) {
     if (job) {
       console.error(${workerName}Queue.name, "Job Failed :", job.id, err)
     } else {
@@ -163,11 +164,11 @@ export class ${workerClassName}Worker {
     }
   }
 
-  private ready = () => {
+  #ready = () => {
     console.log(${workerName}Queue.name, "Ready...")
   }
 
-  private completed(job: Job) {
+  #completed(job) {
     console.log(${workerName}Queue.name, "Job Completed :", job.id)
   }
 
@@ -181,14 +182,14 @@ export class ${workerClassName}Worker {
    * ---------------------------------------------------------------------
    */
 
-  private async processing(job: Job) {
+  async #processing(job) {
     console.log(job.data)
   }
 }
 `
 }
 
-export function generateCacheDriverContent(cacheDriverName: string): string {
+export function generateCacheDriverContentJS(cacheDriverName: string): string {
   const cacheDriverClassName = `${nameFixer(cacheDriverName, true)}CacheDriver`
 
   return `
@@ -197,7 +198,7 @@ export function generateCacheDriverContent(cacheDriverName: string): string {
 export class ${cacheDriverClassName} {
   public readonly cachePartition = "${nameFixer(cacheDriverName, false)}-cache"
 
-  async create<T>(key: string, payload: T) {
+  async create(key, payload) {
     return cacheResponse(
       cacheNameGen(this.cachePartition, key),
       null,
@@ -205,7 +206,7 @@ export class ${cacheDriverClassName} {
     )
   }
 
-  async get(key: string) {
+  async get(key) {
     return cacheResponse(
       cacheNameGen(this.cachePartition, key),
       null,
@@ -213,7 +214,7 @@ export class ${cacheDriverClassName} {
     )
   }
 
-  async update<T>(key: string, payload: T) {
+  async update(key, payload) {
     return cacheResponse(
       cacheNameGen(this.cachePartition, key),
       null,
@@ -221,7 +222,7 @@ export class ${cacheDriverClassName} {
     )
   }
 
-  async delete(key: string) {
+  async delete(key) {
     return cacheResponse(
       cacheNameGen(this.cachePartition, key),
       null,

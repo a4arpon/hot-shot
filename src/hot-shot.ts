@@ -154,10 +154,9 @@ export type RouteDefinition = {
 }
 
 export interface RouteBuilder {
-  useGuards(...guards: MiddlewareType[]): RouteBuilder;
-  controller(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition;
+  useGuards(...guards: MiddlewareType[]): RouteBuilder
+  controller(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition
 }
-
 
 /**
  * Creates a new route definition.
@@ -191,7 +190,6 @@ export function route(
   }
 }
 
-
 /**
  * Creates a new router.
  *
@@ -209,46 +207,46 @@ export function router({
   basePath?: string | null
   routeGuard?: MiddlewareType
 }): Hono {
-    const controllerRoutes = new Hono().basePath(basePath ?? "")
+  const controllerRoutes = new Hono().basePath(basePath ?? "")
 
-    if (routeGuard) {
-      controllerRoutes.use(middlewareFactory(routeGuard))
+  if (routeGuard) {
+    controllerRoutes.use(middlewareFactory(routeGuard))
+  }
+
+  for (const routeDefinition of routes) {
+    const {
+      method,
+      path,
+      controller,
+      useGuards: useGuardsList = [],
+    } = routeDefinition
+
+    const middlewares = useGuardsList.map((middleware: MiddlewareType) =>
+      middlewareFactory(middleware),
+    )
+
+    switch (method) {
+      case "POST":
+        controllerRoutes.post(path, ...middlewares, safeAsync(controller))
+        break
+      case "GET":
+        controllerRoutes.get(path, ...middlewares, safeAsync(controller))
+        break
+      case "PUT":
+        controllerRoutes.put(path, ...middlewares, safeAsync(controller))
+        break
+      case "DELETE":
+        controllerRoutes.delete(path, ...middlewares, safeAsync(controller))
+        break
+      case "PATCH":
+        controllerRoutes.patch(path, ...middlewares, safeAsync(controller))
+        break
+      default:
+        throw new Error(`Unsupported method: ${method}`)
     }
+  }
 
-    for (const routeDefinition of routes) {
-      const {
-        method,
-        path,
-        controller,
-        useGuards: useGuardsList = [],
-      } = routeDefinition
-
-      const middlewares = useGuardsList.map((middleware: MiddlewareType) =>
-        middlewareFactory(middleware),
-      )
-
-      switch (method) {
-        case "POST":
-          controllerRoutes.post(path, ...middlewares, safeAsync(controller))
-          break
-        case "GET":
-          controllerRoutes.get(path, ...middlewares, safeAsync(controller))
-          break
-        case "PUT":
-          controllerRoutes.put(path, ...middlewares, safeAsync(controller))
-          break
-        case "DELETE":
-          controllerRoutes.delete(path, ...middlewares, safeAsync(controller))
-          break
-        case "PATCH":
-          controllerRoutes.patch(path, ...middlewares, safeAsync(controller))
-          break
-        default:
-          throw new Error(`Unsupported method: ${method}`)
-      }
-    }
-
-    return controllerRoutes
+  return controllerRoutes
 }
 
 /*
@@ -264,7 +262,6 @@ export function router({
 export type RouterConstructor = new () => {
   routes: Hono
 }
-
 
 /**
  * Creates a new router factory.
@@ -303,7 +300,6 @@ export type RouterContainerOptions = {
   routers: Array<Hono>
 }
 
-
 /**
  * Creates a new router container.
  *
@@ -338,7 +334,6 @@ export type UseGuard = {
   use: (ctx: Context, next: Next) => Promise<void>
 }
 
-
 /**
  * Creates a new middleware factory.
  *
@@ -347,8 +342,8 @@ export type UseGuard = {
  */
 export function middlewareFactory(
   Middleware: new () => UseGuard,
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-// biome-ignore lint/complexity/noBannedTypes: <explanation>
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  // biome-ignore lint/complexity/noBannedTypes: <explanation>
 ): MiddlewareHandler<any, string, {}> {
   return createMiddleware(async (ctx: Context, next: Next) => {
     try {

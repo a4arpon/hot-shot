@@ -445,9 +445,7 @@ export async function generateOpenApiSpec(specName: string) {
       (m: { name: string }) => m.name === specName,
     )
   ) {
-    console.error(
-      `Error: OpenApi Spec '${specName}' already exists in config.`,
-    )
+    console.error(`Error: OpenApi Spec '${specName}' already exists in config.`)
     return
   }
 
