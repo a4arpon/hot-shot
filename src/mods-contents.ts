@@ -28,8 +28,10 @@ import {${controllerClassName}} from "./controller";
 
 export class ${routerClassName}Router {
     public readonly routes: Hono
+    private ${nameFixer(moduleName,false)}Controller: ${controllerClassName}()
 
     constructor() {
+        this.${nameFixer(moduleName,false)}Controller = new ${controllerClassName}()
         this.routes = routerContainer({
             routers: [this.defaultRoutes()],
             basePath: '/${moduleName.toLowerCase()}',
@@ -37,12 +39,6 @@ export class ${routerClassName}Router {
     }
 
     defaultRoutes() {
-
-        const ${nameFixer(
-          moduleName,
-          false,
-        )}Controller = new ${controllerClassName}()
-
         return router({
             basePath: '/',
             routes: [
@@ -125,14 +121,14 @@ export function generateWorkerFile(workerName: string): string {
 
   return `
 import { type Job, Worker } from "bullmq"
-import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn.ts"
+import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn"
 
 /*
 *
 * Queue Name: ${nameFixer(workerName, false)}Queue
 * Important Note: You must create a Bull Queue with the same name as
 * the queue name ${nameFixer(workerName, false)}Queue in your
-* #libs/conn.ts file. After creating the queue, you can remove this
+* #libs/conn file. After creating the queue, you can remove this
 * comment.
 *
 */
@@ -192,7 +188,7 @@ export function generateCacheDriverContent(cacheDriverName: string): string {
   const cacheDriverClassName = `${nameFixer(cacheDriverName, true)}CacheDriver`
 
   return `
-  import { cacheNameGen, cacheResponse } from "#libs/ioredis-json.ts"
+  import { cacheNameGen, cacheResponse } from "#libs/ioredis-json"
 
 export class ${cacheDriverClassName} {
   public readonly cachePartition = "${nameFixer(cacheDriverName, false)}-cache"
@@ -255,7 +251,7 @@ export function generateOpenApiSpecContent(specName: string): string {
   const openAPISpecClassName = `${nameFixer(specName, true)}OpenApiSpecs`
 
   return `
-  import type { ApiSpecs, UseOpenApi } from "#libs/open-api.ts"
+  import type { ApiSpecs, UseOpenApi } from "#libs/open-api"
   import { z } from "zod"
 
   export class ${openAPISpecClassName} implements UseOpenApi {
