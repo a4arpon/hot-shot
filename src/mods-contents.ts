@@ -24,7 +24,7 @@ export function generateRouterFile(
   return `
 import type {Hono} from "hono";
 import {router, routerContainer, route} from "@a4arpon/hotshot";
-import {${controllerClassName}} from "#mods/${moduleName}/controller.ts";
+import {${controllerClassName}} from "#mods/${moduleName}-mod/controller.ts";
 
 export class ${routerClassName}Router {
     public readonly routes: Hono
@@ -66,7 +66,7 @@ export function generateControllerFile(
 
   return `
 import type {Context} from "hono";
-import {${serviceName}} from "#mods/${moduleName}/${moduleName}.services.ts";
+import {${serviceName}} from "#mods/${moduleName}-mod/${moduleName}.services.ts";
 
 export class ${controllerClassName} {
     private readonly ${nameFixer(moduleName, false)}Services: ${serviceName}

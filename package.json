@@ -1,12 +1,16 @@
 {
   "name": "@a4arpon/hotshot",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "module": "./src/hot-shot.ts",
   "type": "module",
   "repository": "https://github.com/a4arpon/hot-shot.git",
   "bin": {
     "hotshot": "./build/main.js"
   },
+  "exports":[
+    "./src/hot-shot.ts",
+    "./build/main.js"
+  ],
   "scripts": {
     "build": "bun build src/main.ts --outdir ./build --target node --splitting --minify --format esm"
   },
