@@ -28,22 +28,28 @@ import {${controllerClassName}} from "./controller";
 
 export class ${routerClassName}Router {
     public readonly routes: Hono
-    private ${nameFixer(moduleName,false)}Controller: ${controllerClassName}()
+    private ${nameFixer(moduleName,false)}Controller: ${controllerClassName}
 
     constructor() {
         this.${nameFixer(moduleName,false)}Controller = new ${controllerClassName}()
+
+        /*
+        ----------------------------------------------------------------------
+        | Routes Container > It's a group of routers for ${routerClassName}
+        ----------------------------------------------------------------------
+        */
         this.routes = routerContainer({
-            routers: [this.defaultRoutes()],
             basePath: '/${moduleName.toLowerCase()}',
+            routers: [this.default()],
         })
     }
 
-    defaultRoutes() {
+    default() {
         return router({
             basePath: '/',
             routes: [
-               route("GET")
-                .controller(${nameFixer(moduleName, false)}Controller.${controllerMethodName}),
+              route("GET")
+                .controller(this.${nameFixer(moduleName, false)}Controller.${controllerMethodName}),
            ],
         })
     }
@@ -101,6 +107,7 @@ export function generateMiddlewareFile(middlewareName: string): string {
   return `
 import { type UseGuard, HTTPStatus } from "@a4arpon/hotshot";
 import type {Context, Next} from "hono";
+import { HTTPException } from "hono/http-exception"
 
 export class ${middlewareClassName} implements UseGuard {
   async use(ctx: Context, next: Next) {
@@ -228,24 +235,6 @@ export class ${cacheDriverClassName} {
 `
 }
 
-function formatTitle(input: string): string {
-    // Split at the slash to handle vendor and model separately
-    const [vendor, model] = input.split('/');
-
-    // Function to capitalize the first letter of each word
-    const capitalizeWords = (str: string) => {
-        return str
-           .replace(/[^a-zA-Z0-9\s-]/g, ')')
-           .split(' ') // Split into words
-           .filter(word => word!== '') // Remove empty strings (if any)
-           .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize first letter of each
-           .join(' '); // Join back into a string
-    };
-
-    // Apply the formatting to both vendor and model, then combine
-    return `${capitalizeWords(vendor)} ${capitalizeWords(model)}`.trim();
-}
-
 
 export function generateOpenApiSpecContent(specName: string): string {
   const openAPISpecClassName = `${nameFixer(specName, true)}OpenApiSpecs`
@@ -262,7 +251,7 @@ export function generateOpenApiSpecContent(specName: string): string {
         {
           method: "GET",
           path: "/${specName}",
-          tags: ["${formatTitle(specName)}"],
+          tags: ["${specName}"],
           summery: "Get Request",
         }
       ]
