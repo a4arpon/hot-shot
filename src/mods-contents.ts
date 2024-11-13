@@ -28,15 +28,15 @@ import {${controllerClassName}} from "./controller";
 
 export class ${routerClassName}Router {
     public readonly routes: Hono
-    private ${nameFixer(moduleName,false)}Controller: ${controllerClassName}
+    private readonly ${nameFixer(moduleName,false)}Controller: ${controllerClassName}
 
     constructor() {
         this.${nameFixer(moduleName,false)}Controller = new ${controllerClassName}()
 
         /*
-        ----------------------------------------------------------------------
-        | Routes Container > It's a group of routers for ${routerClassName}
-        ----------------------------------------------------------------------
+        * ----------------------------------------------------------------
+        * | Routes Container > It's a group of routers for ${routerClassName}
+        * ------------------------------------------------------------------
         */
         this.routes = routerContainer({
             basePath: '/${moduleName.toLowerCase()}',

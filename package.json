@@ -1,6 +1,6 @@
 {
   "name": "@a4arpon/hotshot",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "module": "./build/main.js",
   "type": "module",
   "repository": "https://github.com/a4arpon/hot-shot.git",

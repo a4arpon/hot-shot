@@ -1,6 +1,6 @@
 {
   "name": "@a4arpon/hotshot",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "exports": {
     ".":"./src/hot-shot.ts",
     "./cli": "./build/main.js"
