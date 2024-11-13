@@ -1,6 +1,9 @@
 {
   "name": "@a4arpon/hotshot",
   "version": "0.5.6",
-  "exports": ["./src/hot-shot.ts", "./build/main.js"],
+  "exports": {
+    ".":"./src/hot-shot.ts",
+    "cli": "./build/main.js"
+  },
   "license": "MIT"
 }

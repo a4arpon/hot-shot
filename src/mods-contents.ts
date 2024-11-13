@@ -232,12 +232,46 @@ export class ${cacheDriverClassName} {
 `
 }
 
+function formatTitle(input: string): string {
+    // Split at the slash to handle vendor and model separately
+    const [vendor, model] = input.split('/');
+
+    // Function to capitalize the first letter of each word
+    const capitalizeWords = (str: string) => {
+        return str
+           .replace(/[^a-zA-Z0-9\s-]/g, ')')
+           .split(' ') // Split into words
+           .filter(word => word!== '') // Remove empty strings (if any)
+           .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize first letter of each
+           .join(' '); // Join back into a string
+    };
+
+    // Apply the formatting to both vendor and model, then combine
+    return `${capitalizeWords(vendor)} ${capitalizeWords(model)}`.trim();
+}
+
+
 export function generateOpenApiSpecContent(specName: string): string {
   const openAPISpecClassName = `${nameFixer(specName, true)}OpenApiSpecs`
 
   return `
   import type { ApiSpecs, UseOpenApi } from "#libs/open-api.ts"
   import { z } from "zod"
+
+  export class ${openAPISpecClassName} implements UseOpenApi {
+    public readonly specs: ApiSpecs[]
+
+    constructor() {
+      this.specs = [
+        {
+          method: "GET",
+          path: "/${specName}",
+          tags: ["${formatTitle(specName)}"],
+          summery: "Get Request",
+        }
+      ]
+    }
+  }
 
   /*
    * ------------------------------------------------------------------------
@@ -258,62 +292,5 @@ export function generateOpenApiSpecContent(specName: string): string {
    * Doc Link: https://orm.drizzle.team/docs/zod
    * ------------------------------------------------------------------------
    */
-
-  export class ${openAPISpecClassName} implements UseOpenApi {
-    public readonly specs: ApiSpecs[]
-
-    constructor() {
-      this.specs = [
-        {
-          method: "GET",
-          path: "/${specName}",
-          tags: ["${nameFixer(specName, true)}"],
-          summery: "Get all items from server",
-        },
-        {
-          method: "GET",
-          path: "/${specName}/{${nameFixer(specName, false)}Slug}",
-          pathParams: ["${nameFixer(specName, false)}Slug"],
-          tags: ["${nameFixer(specName, true)}"],
-          summery: "Get single ${nameFixer(specName, true)} from server",
-        },
-        {
-          method: "POST",
-          path: "/${specName}",
-          tags: ["${nameFixer(specName, true)}"],
-          summery: "Add new ${nameFixer(specName, true)}",
-          requestBody: z.object({
-            title: z.string(),
-            tags: z.array(z.string()).nullable(),
-          }),
-        },
-        {
-          method: "PATCH",
-          path: "/${specName}/{${nameFixer(specName, false)}Slug}",
-          pathParams: ["${nameFixer(specName, false)}Slug"],
-          queryParams: ["${nameFixer(specName, false)}Status"],
-          tags: ["${nameFixer(specName, true)}"],
-          summery: "Add a little patch in the data",
-        },
-        {
-          method: "PUT",
-          path: "/${specName}/{${nameFixer(specName, false)}Slug}",
-          pathParams: ["${nameFixer(specName, false)}Slug"],
-          tags: ["${nameFixer(specName, true)}"],
-          summery: "Update  ${nameFixer(specName, true)}",
-          requestBody: z.object({
-            title: z.string(),
-          }),
-        },
-        {
-          method: "DELETE",
-          path: "/${specName}/{${nameFixer(specName, false)}Slug}",
-          pathParams: ["${nameFixer(specName, false)}Slug"],
-          tags: ["${nameFixer(specName, true)}"],
-          summery: "Delete single ${nameFixer(specName, true)}",
-        }
-      ]
-    }
-  }
   `
 }
