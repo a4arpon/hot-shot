@@ -3,7 +3,7 @@
   "version": "0.5.6",
   "exports": {
     ".":"./src/hot-shot.ts",
-    "cli": "./build/main.js"
+    "./cli": "./build/main.js"
   },
   "license": "MIT"
 }
