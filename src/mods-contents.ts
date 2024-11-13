@@ -24,7 +24,7 @@ export function generateRouterFile(
   return `
 import type {Hono} from "hono";
 import {router, routerContainer, route} from "@a4arpon/hotshot";
-import {${controllerClassName}} from "./controller";
+import {${controllerClassName}} from "#mods/${moduleName}/controller.ts";
 
 export class ${routerClassName}Router {
     public readonly routes: Hono
@@ -45,7 +45,7 @@ export class ${routerClassName}Router {
 
         return router({
             basePath: '/',
-            routers: [
+            routes: [
                route("GET")
                 .controller(${nameFixer(moduleName, false)}Controller.${controllerMethodName}),
            ],
@@ -66,7 +66,7 @@ export function generateControllerFile(
 
   return `
 import type {Context} from "hono";
-import {${serviceName}} from "./${moduleName}.services";
+import {${serviceName}} from "#mods/${moduleName}/${moduleName}.services.ts";
 
 export class ${controllerClassName} {
     private readonly ${nameFixer(moduleName, false)}Services: ${serviceName}
@@ -125,7 +125,7 @@ export function generateWorkerFile(workerName: string): string {
 
   return `
 import { type Job, Worker } from "bullmq"
-import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn"
+import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn.ts"
 
 /*
 *
@@ -192,7 +192,7 @@ export function generateCacheDriverContent(cacheDriverName: string): string {
   const cacheDriverClassName = `${nameFixer(cacheDriverName, true)}CacheDriver`
 
   return `
-  import { cacheNameGen, cacheResponse } from "#libs/ioredis-json"
+  import { cacheNameGen, cacheResponse } from "#libs/ioredis-json.ts"
 
 export class ${cacheDriverClassName} {
   public readonly cachePartition = "${nameFixer(cacheDriverName, false)}-cache"
@@ -236,7 +236,7 @@ export function generateOpenApiSpecContent(specName: string): string {
   const openAPISpecClassName = `${nameFixer(specName, true)}OpenApiSpecs`
 
   return `
-  import type { ApiSpecs, UseOpenApi } from "#libs/open-api"
+  import type { ApiSpecs, UseOpenApi } from "#libs/open-api.ts"
   import { z } from "zod"
 
   /*
