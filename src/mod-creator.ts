@@ -254,7 +254,7 @@ export async function generateMiddleware(middlewareName: string) {
   const config = JSON.parse(configFileContent)
 
   // Generate Middleware Contents
-  const middlewareContent =  config.projectTyp ==='ts'? generateMiddlewareFile(middlewareName) : generateMiddlewareFileJS(middlewareName)
+  const middlewareContent =  config.projectType ==='ts' ? generateMiddlewareFile(middlewareName) : generateMiddlewareFileJS(middlewareName)
 
   // Create middleware file path
   const middlewareFileName = `${middlewareName}.guard${
