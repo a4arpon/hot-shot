@@ -6,7 +6,7 @@
 
 ### If You Want To Ship Fast, You Have To Build Faster.
 
-** But this framework is more faster than your crush rejects your proposal.**
+**But this framework is more faster than your crush rejects your proposal.**
 
 Welcome to **Hot Shot**, a meta-framework built on top of
 [Hono](https://honojs.dev/), inspired by the best features of AdonisJS and
@@ -42,7 +42,7 @@ codebase modular and maintainable.
 Copy the starter kit to your project directory and start coding.
 
 ```bash
-npx jsr add @a4arpon/hotshot-starter-kit
+git clone https://github.com/a4arpon/hot-shot-kit.git && cd hot-shot-kit.git && rm -rf .git && code .
 ```
 
 I am too lazy to write the documentation for this. So, I recommend you to copy the starter kit to your project directory

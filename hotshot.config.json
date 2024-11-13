@@ -2,49 +2,10 @@
   "registry": "https://github.com/a4arpon/hot-shot/registry.json",
   "projectType": "ts",
   "contains": {
-    "mods": [
-      {
-        "type": "router",
-        "name": "auth",
-        "path": "./src/mods/auth-mod",
-        "contains": [
-          "router",
-          "controller",
-          "services"
-        ],
-        "services": [
-          "auth.services"
-        ]
-      },
-      {
-        "type": "router",
-        "name": "auth",
-        "path": "./src/mods/auth-mod",
-        "contains": [
-          "router",
-          "controller",
-          "services"
-        ],
-        "services": [
-          "auth.services"
-        ]
-      },
-      {
-        "type": "router",
-        "name": "auth",
-        "path": "./src/mods/auth-mod",
-        "contains": [
-          "router",
-          "controller",
-          "services"
-        ],
-        "services": [
-          "auth.services"
-        ]
-      }
-    ],
+    "mods": [],
     "cacheDrivers": [],
     "queues": [],
-    "useGuards": []
+    "useGuards": [],
+    "openApiSpecs": []
   }
 }

@@ -13,7 +13,7 @@ export function nameFixer(moduleName: string, isClassName = true): string {
     : fixedName
 }
 
-export function generateRouterFile(
+export function generateRouterFileJS(
   moduleName: string,
   _fileExtension: string,
 ): string {
@@ -22,12 +22,13 @@ export function generateRouterFile(
   const controllerMethodName = nameFixer(moduleName, false)
 
   return `
-import type {Hono} from "hono";
+import {Hono} from "hono";
 import {router, routerContainer, route} from "@a4arpon/hotshot";
 import {${controllerClassName}} from "./controller";
 
 export class ${routerClassName}Router {
-    public readonly routes: Hono
+    /** @type{Hono} */
+    routes
 
     constructor() {
         this.routes = routerContainer({
@@ -65,18 +66,26 @@ export function generateControllerFileJS(
   const serviceMethodName = nameFixer(moduleName, false)
 
   return `
-import type {Context} from "hono";
+import {Context} from "hono";
+import {ApiResponse} from "@a4arpon/hotshot";
 import {${serviceName}} from "./${moduleName}.services";
 
 export class ${controllerClassName} {
+    /**
+    * @type {${serviceName}}
+    */
     #${nameFixer(moduleName, false)}Services
 
     constructor() {
         this.#${nameFixer(moduleName, false)}Services = new ${serviceName}()
     }
 
+    /**
+     * @param {Context} ctx
+     * @returns {Promise<ApiResponse>}
+    */
     ${controllerFileName} = async (ctx) => {
-        return this.${nameFixer(
+        return this.#${nameFixer(
           moduleName,
           false,
         )}Services.${serviceMethodName}()
@@ -85,7 +94,7 @@ export class ${controllerClassName} {
 `
 }
 
-export function generateServicesFile(moduleName: string): string {
+export function generateServicesFileJS(moduleName: string): string {
   const servicesClassName = `${nameFixer(moduleName, true)}Services`
   const serviceMethodName = nameFixer(moduleName, false)
 
@@ -100,14 +109,21 @@ export class ${servicesClassName} {
 `
 }
 
-export function generateMiddlewareFile(middlewareName: string): string {
+export function generateMiddlewareFileJS(middlewareName: string): string {
   const middlewareClassName = `${nameFixer(middlewareName, true)}Guard`
   return `
-import { type UseGuard, HTTPStatus } from "@a4arpon/hotshot";
+import { UseGuard, HTTPStatus } from "@a4arpon/hotshot";
 import {Context, Next} from "hono";
+import { HTTPException } from "hono/http-exception"
 
-export class ${middlewareClassName} implements UseGuard {
-  /** @type {Context, Next} */
+/**
+* @implements {UseGuard}
+*/
+export class ${middlewareClassName} {
+  /**
+  * @param {Context} ctx
+  * @param {Next} next
+  */
   async use(ctx, next) {
     if (ctx.req.path === "/${middlewareName.toLowerCase()}-guard") {
       throw new HTTPException(HTTPStatus.BadRequest, {
@@ -121,11 +137,11 @@ export class ${middlewareClassName} implements UseGuard {
 }`
 }
 
-export function generateWorkerFile(workerName: string): string {
+export function generateWorkerFileJS(workerName: string): string {
   const workerClassName = `${nameFixer(workerName, true)}Queue`
 
   return `
-import { type Job, Worker } from "bullmq"
+import { Worker } from "bullmq"
 import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn"
 
 /*
@@ -139,7 +155,11 @@ import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn"
 */
 
 export class ${workerClassName}Worker {
-  public readonly worker
+
+  /**
+   * @type {Worker}
+   */
+  worker
 
   constructor() {
     this.worker = new Worker(
@@ -196,8 +216,16 @@ export function generateCacheDriverContentJS(cacheDriverName: string): string {
   import { cacheNameGen, cacheResponse } from "#libs/ioredis-json"
 
 export class ${cacheDriverClassName} {
-  public readonly cachePartition = "${nameFixer(cacheDriverName, false)}-cache"
+  /**
+   * @type {string}
+   */
+  cachePartition = "${nameFixer(cacheDriverName, false)}-cache"
 
+  /**
+   * @param {string} key
+   * @param {any} payload
+   * @returns {Promise<any>}
+   */
   async create(key, payload) {
     return cacheResponse(
       cacheNameGen(this.cachePartition, key),
@@ -206,6 +234,10 @@ export class ${cacheDriverClassName} {
     )
   }
 
+  /**
+   * @param {string} key
+   * @returns {Promise<any>}
+  */
   async get(key) {
     return cacheResponse(
       cacheNameGen(this.cachePartition, key),
@@ -214,6 +246,11 @@ export class ${cacheDriverClassName} {
     )
   }
 
+  /**
+  * @param {string} key
+  * @param {any} payload
+  * @returns {Promise<any>}
+  */
   async update(key, payload) {
     return cacheResponse(
       cacheNameGen(this.cachePartition, key),
@@ -222,6 +259,10 @@ export class ${cacheDriverClassName} {
     )
   }
 
+  /**
+   * @param {string} key
+   * @returns {Promise<any>}
+  */
   async delete(key) {
     return cacheResponse(
       cacheNameGen(this.cachePartition, key),
@@ -233,35 +274,22 @@ export class ${cacheDriverClassName} {
 `
 }
 
-export function generateOpenApiSpecContent(specName: string): string {
+export function generateOpenApiSpecContentJS(specName: string): string {
   const openAPISpecClassName = `${nameFixer(specName, true)}OpenApiSpecs`
 
   return `
-  import type { ApiSpecs, UseOpenApi } from "#libs/open-api"
+  import { ApiSpecs, UseOpenApi } from "#libs/open-api"
   import { z } from "zod"
 
-  /*
-   * ------------------------------------------------------------------------
-   * Open API Specs
-   *
-   * Some Key Points -
-   * 1. To use path params, you need to use the path param syntax in the path
-   * and the path param name in the pathParams array.
-   * Example: path: "/author/{authorSlug}", pathParams: ["authorSlug"]
-   * Second brackets {} are used to define the path param syntax.
-   *
-   * 2. To define a request body, you need to define it as a ZodSchema and
-   * pass it to the requestBody property.
-   * Example: requestBody: z.object({ title: z.string() })
-   *
-   * Tips: In this project we are using Drizzle-ORM, so we can easilty inherit
-   * the ZodSchema from the drizzle-orm.
-   * Doc Link: https://orm.drizzle.team/docs/zod
-   * ------------------------------------------------------------------------
+  /**
+   * @implements {UseOpenApi}
    */
+  export class ${openAPISpecClassName} {
 
-  export class ${openAPISpecClassName} implements UseOpenApi {
-    public readonly specs: ApiSpecs[]
+    /**
+     * @type {ApiSpecs[]}
+     */
+    specs
 
     constructor() {
       this.specs = [
@@ -316,5 +344,25 @@ export function generateOpenApiSpecContent(specName: string): string {
       ]
     }
   }
+
+  /*
+   * ------------------------------------------------------------------------
+   * Open API Specs
+   *
+   * Some Key Points -
+   * 1. To use path params, you need to use the path param syntax in the path
+   * and the path param name in the pathParams array.
+   * Example: path: "/author/{authorSlug}", pathParams: ["authorSlug"]
+   * Second brackets {} are used to define the path param syntax.
+   *
+   * 2. To define a request body, you need to define it as a ZodSchema and
+   * pass it to the requestBody property.
+   * Example: requestBody: z.object({ title: z.string() })
+   *
+   * Tips: In this project we are using Drizzle-ORM, so we can easilty inherit
+   * the ZodSchema from the drizzle-orm.
+   * Doc Link: https://orm.drizzle.team/docs/zod
+   * ------------------------------------------------------------------------
+   */
   `
 }
