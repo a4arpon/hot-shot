@@ -126,19 +126,19 @@ export class ${middlewareClassName} implements UseGuard {
 export function generateWorkerFile(workerName: string): string {
   const workerClassName = `${nameFixer(workerName, true)}Queue`
 
+
+  console.log(`
+  ------------------------------------------------------------------------
+  Queue Name: ${nameFixer(workerName, false)}Queue
+  Important Note: You must create a Bull Queue with the same name as
+  the queue name ${nameFixer(workerName, false)}Queue in your
+  #libs/conn file.
+  ------------------------------------------------------------------------
+  `);
+
   return `
 import { type Job, Worker } from "bullmq"
 import { ${nameFixer(workerName, false)}Queue, redis } from "#libs/conn"
-
-/*
-*
-* Queue Name: ${nameFixer(workerName, false)}Queue
-* Important Note: You must create a Bull Queue with the same name as
-* the queue name ${nameFixer(workerName, false)}Queue in your
-* #libs/conn file. After creating the queue, you can remove this
-* comment.
-*
-*/
 
 export class ${workerClassName}Worker {
   public readonly worker: Worker
@@ -239,6 +239,26 @@ export class ${cacheDriverClassName} {
 export function generateOpenApiSpecContent(specName: string): string {
   const openAPISpecClassName = `${nameFixer(specName, true)}OpenApiSpecs`
 
+  console.log(`
+    ------------------------------------------------------------------------
+    Open API Specs
+    \n
+    Some Key Points -
+    1. To use path params, you need to use the path param syntax in the path
+    and the path param name in the pathParams array.
+    Example: path: "/author/{authorSlug}", pathParams: ["authorSlug"]
+    Second brackets {} are used to define the path param syntax.
+    \n
+    2. To define a request body, you need to define it as a ZodSchema and
+    pass it to the requestBody property.
+    Example: requestBody: z.object({ title: z.string() })\n
+
+    Tips: In this project we are using Drizzle-ORM, so we can easily inherit
+    the ZodSchema from the drizzle-orm.
+    Doc Link: https://orm.drizzle.team/docs/zod\n
+    ------------------------------------------------------------------------
+    `);
+
   return `
   import type { ApiSpecs, UseOpenApi } from "#libs/open-api"
   import { z } from "zod"
@@ -257,25 +277,5 @@ export function generateOpenApiSpecContent(specName: string): string {
       ]
     }
   }
-
-  /*
-   * ------------------------------------------------------------------------
-   * Open API Specs
-   *
-   * Some Key Points -
-   * 1. To use path params, you need to use the path param syntax in the path
-   * and the path param name in the pathParams array.
-   * Example: path: "/author/{authorSlug}", pathParams: ["authorSlug"]
-   * Second brackets {} are used to define the path param syntax.
-   *
-   * 2. To define a request body, you need to define it as a ZodSchema and
-   * pass it to the requestBody property.
-   * Example: requestBody: z.object({ title: z.string() })
-   *
-   * Tips: In this project we are using Drizzle-ORM, so we can easilty inherit
-   * the ZodSchema from the drizzle-orm.
-   * Doc Link: https://orm.drizzle.team/docs/zod
-   * ------------------------------------------------------------------------
-   */
   `
 }
