@@ -174,7 +174,7 @@ export interface RouteBuilder {
 export function route(
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH",
   path?: string,
-): Omit<RouteBuilder, "method" | "path"> {
+): RouteBuilder {
   const routeDefinition: RouteDefinition = {
       method,
       path: path ?? "/",
