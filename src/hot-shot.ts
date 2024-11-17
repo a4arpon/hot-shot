@@ -145,21 +145,48 @@ export const safeAsync = (
 */
 
 export type MiddlewareType = new () => UseGuard
+export type RoutePermissions = string[]
+
 
 export type RouteDefinition = {
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
   path: string
   controller: (ctx: Context) => Promise<ApiResponse> | ApiResponse
-  useGuards?: MiddlewareType[]
-  permissions?: RoutePermissions
+  useGuards: MiddlewareType[]
+  permissions: RoutePermissions
 }
 
-export type RoutePermissions = string[]
+export class RouteFactory {
+  private routeDefinition: RouteDefinition;
 
-export interface RouteBuilder {
-  useGuards(...guards: MiddlewareType[]): RouteBuilder
-  controller(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition
-  permissions(...perms: RoutePermissions): RouteBuilder
+  constructor(method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH", path?: string) {
+    this.routeDefinition = {
+      method,
+      path: path ?? "/",
+      controller: () => response("Not Implemented"),
+      useGuards: [],
+      permissions: [],
+    };
+  }
+
+  useGuards(...guards: MiddlewareType[]): this {
+    this.routeDefinition.useGuards.push(...guards);
+    return this;
+  }
+
+  controller(handler: (ctx: Context) => Promise<ApiResponse>): this {
+    this.routeDefinition.controller = handler;
+    return this;
+  }
+
+  permissions(...perms: string[]): this {
+    this.routeDefinition.permissions.push(...perms);
+    return this;
+  }
+
+  build(): RouteDefinition {
+    return this.routeDefinition;
+  }
 }
 
 /**
@@ -174,29 +201,8 @@ export interface RouteBuilder {
 export function route(
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH",
   path?: string,
-): Omit<RouteBuilder, "method" | "path"> {
-  const routeDefinition: RouteDefinition = {
-    method,
-    path: path ?? "/",
-    controller: () => response("Not Implemented"),
-    useGuards: [],
-    permissions: [],
-  }
-
-  return {
-    useGuards(...guards: MiddlewareType[]) {
-      routeDefinition.useGuards?.push(...guards)
-      return this
-    },
-    controller(handler: (ctx: Context) => Promise<ApiResponse>) {
-      routeDefinition.controller = handler
-      return routeDefinition
-    },
-    permissions(...perms: string[]) {
-      routeDefinition.permissions?.push(...perms)
-      return this
-    },
-  }
+): RouteDefinition {
+  return new RouteFactory(method, path).build();
 }
 
 /**
