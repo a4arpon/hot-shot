@@ -26,6 +26,12 @@ import { createMiddleware } from "hono/factory"
 import { HTTPException } from "hono/http-exception"
 import type { StatusCode } from "hono/utils/http-status"
 
+declare module "hono" {
+  interface Context {
+    permissions?: RoutePermissions
+  }
+}
+
 /*
 |
 |--------------------------------------------------------------------------
@@ -144,18 +150,22 @@ export const safeAsync = (
 |
 */
 
-export type MiddlewareType = new (...args: MiddlwareAruments) => UseGuard
+export type MiddlewareType = new () => UseGuard
 
 export type RouteDefinition = {
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
   path: string
   controller: (ctx: Context) => Promise<ApiResponse> | ApiResponse
   useGuards?: MiddlewareType[]
+  permissions?: RoutePermissions
 }
+
+export type RoutePermissions = string[]
 
 export interface RouteBuilder {
   useGuards(...guards: MiddlewareType[]): RouteBuilder
   controller(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition
+  permissions(...perms: RoutePermissions): RouteBuilder
 }
 
 /**
@@ -176,6 +186,7 @@ export function route(
     path: path ?? "/",
     controller: () => response("Not Implemented"),
     useGuards: [],
+    permissions: [],
   }
 
   return {
@@ -186,6 +197,10 @@ export function route(
     controller(handler: (ctx: Context) => Promise<ApiResponse>) {
       routeDefinition.controller = handler
       return routeDefinition
+    },
+    permissions(...perms: string[]) {
+      routeDefinition.permissions?.push(...perms)
+      return this
     },
   }
 }
@@ -221,11 +236,16 @@ export function router({
       path,
       controller,
       useGuards: useGuardsList = [],
+      permissions: permissionsList = [],
     } = routeDefinition
 
     const middlewares = useGuardsList.map((middleware: MiddlewareType) =>
       middlewareFactory(middleware),
     )
+
+    if (permissionsList.length > 0) {
+      middlewares.push(new PermissionController(permissionsList).use)
+    }
 
     switch (method) {
       case "POST":
@@ -336,26 +356,53 @@ export type UseGuard = {
   use: (ctx: Context, next: Next) => Promise<void>
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-export type MiddlwareAruments = any[]
-
 /**
  * Creates a new middleware factory.
  *
  * @param Middleware - The middleware class.
  * @returns A middleware handler function.
  */
-export function middlewareFactory<T extends UseGuard>(
-
-  Middleware: new (...args: MiddlwareAruments) => T,
-  ...args: MiddlwareAruments
+export function middlewareFactory(
+  Middleware: new () => UseGuard,
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   // biome-ignore lint/complexity/noBannedTypes: <explanation>
 ): MiddlewareHandler<any, string, {}> {
   return createMiddleware(async (ctx: Context, next: Next) => {
     try {
-      const middlewareInstance = new Middleware(...args)
-      await middlewareInstance.use(ctx, next)
+      await new Middleware().use(ctx, next)
+    } catch (error) {
+      if (error instanceof HTTPException) {
+        ctx.status(error.status)
+        return ctx.json(response(error.message, null, {}, false))
+      }
+      if (error instanceof Error) {
+        ctx.status(HTTPStatus.Unauthorized)
+        return ctx.json(response(error.message, null, {}, false))
+      }
+      ctx.status(HTTPStatus.BadRequest)
+      return ctx.json(response("Bad Request", null, {}, false))
+    }
+  })
+}
+
+class PermissionController {
+  constructor(private requiredPermissions: RoutePermissions) {}
+
+  use = createMiddleware(async (ctx: Context, next: Next) => {
+    try {
+      const myPermissions = ctx.permissions ?? []
+
+      const hasRequiredPermissions = this.requiredPermissions.every((perm) =>
+        myPermissions.includes(perm),
+      )
+
+      if (!hasRequiredPermissions) {
+        throw new HTTPException(HTTPStatus.Forbidden, {
+          message: "You are not authorized to access this resource",
+        })
+      }
+
+      await next()
     } catch (error) {
       if (error instanceof HTTPException) {
         ctx.status(error.status)
