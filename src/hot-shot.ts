@@ -145,48 +145,23 @@ export const safeAsync = (
 */
 
 export type MiddlewareType = new () => UseGuard
-export type RoutePermissions = string[]
-
 
 export type RouteDefinition = {
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
   path: string
   controller: (ctx: Context) => Promise<ApiResponse> | ApiResponse
   useGuards: MiddlewareType[]
-  permissions: RoutePermissions
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  // biome-ignore lint/complexity/noBannedTypes: <explanation>
+  middlewares: MiddlewareHandler<any, string, {}>[]
 }
 
-export class RouteFactory {
-  private routeDefinition: RouteDefinition;
-
-  constructor(method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH", path?: string) {
-    this.routeDefinition = {
-      method,
-      path: path ?? "/",
-      controller: () => response("Not Implemented"),
-      useGuards: [],
-      permissions: [],
-    };
-  }
-
-  useGuards(...guards: MiddlewareType[]): this {
-    this.routeDefinition.useGuards.push(...guards);
-    return this;
-  }
-
-  controller(handler: (ctx: Context) => Promise<ApiResponse>): this {
-    this.routeDefinition.controller = handler;
-    return this;
-  }
-
-  permissions(...perms: string[]): this {
-    this.routeDefinition.permissions.push(...perms);
-    return this;
-  }
-
-  build(): RouteDefinition {
-    return this.routeDefinition;
-  }
+export interface RouteBuilder {
+  useGuards(...guards: MiddlewareType[]): RouteBuilder
+  controller(handler: (ctx: Context) => Promise<ApiResponse>): Omit<RouteDefinition, 'method' | 'path'>
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  // biome-ignore lint/complexity/noBannedTypes: <explanation>
+  middlewares(...perms: MiddlewareHandler<any, string, {}>[]): RouteBuilder
 }
 
 /**
@@ -194,15 +169,36 @@ export class RouteFactory {
  *
  * @param {string} method - The HTTP method for the route.
  * @param {string} path - The path for the route.
- * @method {(ctx: Context) => Promise<ApiResponse>} controller - The controller function for the route. Default: () => response("Not Implemented")
- * @method useGuards - The middleware guards for the route. Default: []
- * @returns A RouteBuilder object.
+ * @returns Route bulder function.
  */
 export function route(
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH",
   path?: string,
-): RouteDefinition {
-  return new RouteFactory(method, path).build();
+): Omit<RouteBuilder, "method" | "path"> {
+  const routeDefinition: RouteDefinition = {
+      method,
+      path: path ?? "/",
+      controller: () => response("Not Implemented"),
+      useGuards: [],
+      middlewares: [],
+  }
+
+  return {
+     useGuards(...guards: MiddlewareType[]) {
+       routeDefinition.useGuards?.push(...guards)
+       return this
+     },
+     controller(handler: (ctx: Context) => Promise<ApiResponse>) {
+       routeDefinition.controller = handler
+       return routeDefinition
+     },
+     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+     // biome-ignore lint/complexity/noBannedTypes: <explanation>
+     middlewares(..._middlewares: MiddlewareHandler<any, string, {}>[]) {
+       routeDefinition.middlewares?.push(..._middlewares)
+       return this
+     },
+   }
 }
 
 /**
@@ -236,15 +232,15 @@ export function router({
       path,
       controller,
       useGuards: useGuardsList = [],
-      permissions: permissionsList = [],
+      middlewares: rawMiddlewares = [],
     } = routeDefinition
 
     const middlewares = useGuardsList.map((middleware: MiddlewareType) =>
       middlewareFactory(middleware),
     )
 
-    if (permissionsList.length > 0) {
-      middlewares.push(new PermissionController(permissionsList).use)
+    if (rawMiddlewares.length > 0) {
+      middlewares.push(...rawMiddlewares)
     }
 
     switch (method) {
@@ -370,40 +366,6 @@ export function middlewareFactory(
   return createMiddleware(async (ctx: Context, next: Next) => {
     try {
       await new Middleware().use(ctx, next)
-    } catch (error) {
-      if (error instanceof HTTPException) {
-        ctx.status(error.status)
-        return ctx.json(response(error.message, null, {}, false))
-      }
-      if (error instanceof Error) {
-        ctx.status(HTTPStatus.Unauthorized)
-        return ctx.json(response(error.message, null, {}, false))
-      }
-      ctx.status(HTTPStatus.BadRequest)
-      return ctx.json(response("Bad Request", null, {}, false))
-    }
-  })
-}
-
-class PermissionController {
-  constructor(private requiredPermissions: RoutePermissions) {}
-
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  use = createMiddleware(async (ctx: any, next: Next) => {
-    try {
-      const myPermissions = ctx.permissions ?? []
-
-      const hasRequiredPermissions = this.requiredPermissions.every((perm) =>
-        myPermissions.includes(perm),
-      )
-
-      if (!hasRequiredPermissions) {
-        throw new HTTPException(HTTPStatus.Forbidden, {
-          message: "You are not authorized to access this resource",
-        })
-      }
-
-      await next()
     } catch (error) {
       if (error instanceof HTTPException) {
         ctx.status(error.status)
