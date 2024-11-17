@@ -158,7 +158,7 @@ export type RouteDefinition = {
 
 export interface RouteBuilder {
   useGuards(...guards: MiddlewareType[]): RouteBuilder
-  controller(handler: (ctx: Context) => Promise<ApiResponse>): Omit<RouteDefinition, 'method' | 'path'>
+  controller(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   // biome-ignore lint/complexity/noBannedTypes: <explanation>
   middlewares(...perms: MiddlewareHandler<any, string, {}>[]): RouteBuilder
