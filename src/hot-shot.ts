@@ -144,7 +144,7 @@ export const safeAsync = (
 |
 */
 
-export type MiddlewareType = new () => UseGuard
+export type MiddlewareType = new (...args: MiddlwareAruments) => UseGuard
 
 export type RouteDefinition = {
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
@@ -161,16 +161,16 @@ export interface RouteBuilder {
 /**
  * Creates a new route definition.
  *
- * @param method - The HTTP method for the route.
- * @param path - The path for the route.
- * @method controller - The controller function for the route. Default: () => response("Not Implemented")
+ * @param {string} method - The HTTP method for the route.
+ * @param {string} path - The path for the route.
+ * @method {(ctx: Context) => Promise<ApiResponse>} controller - The controller function for the route. Default: () => response("Not Implemented")
  * @method useGuards - The middleware guards for the route. Default: []
  * @returns A RouteBuilder object.
  */
 export function route(
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH",
   path?: string,
-): RouteBuilder {
+): Omit<RouteBuilder, "method" | "path"> {
   const routeDefinition: RouteDefinition = {
     method,
     path: path ?? "/",
@@ -200,17 +200,19 @@ export function route(
  */
 export function router({
   routes,
-  routeGuard,
+  routeGuards,
   basePath = null,
 }: {
   routes: RouteDefinition[]
   basePath?: string | null
-  routeGuard?: MiddlewareType
+  routeGuards?: MiddlewareType[]
 }): Hono {
   const controllerRoutes = new Hono().basePath(basePath ?? "")
 
-  if (routeGuard) {
-    controllerRoutes.use(middlewareFactory(routeGuard))
+  if (routeGuards) {
+    for (const routeGuard of routeGuards) {
+      controllerRoutes.use(middlewareFactory(routeGuard))
+    }
   }
 
   for (const routeDefinition of routes) {
@@ -334,6 +336,9 @@ export type UseGuard = {
   use: (ctx: Context, next: Next) => Promise<void>
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+export type MiddlwareAruments = any[]
+
 /**
  * Creates a new middleware factory.
  *
@@ -341,10 +346,9 @@ export type UseGuard = {
  * @returns A middleware handler function.
  */
 export function middlewareFactory<T extends UseGuard>(
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  Middleware: new (...args: any[]) => T,
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  ...args: any[]
+
+  Middleware: new (...args: MiddlwareAruments) => T,
+  ...args: MiddlwareAruments
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   // biome-ignore lint/complexity/noBannedTypes: <explanation>
 ): MiddlewareHandler<any, string, {}> {
