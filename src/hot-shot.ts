@@ -26,12 +26,6 @@ import { createMiddleware } from "hono/factory"
 import { HTTPException } from "hono/http-exception"
 import type { StatusCode } from "hono/utils/http-status"
 
-declare module "hono" {
-  interface Context {
-    permissions?: RoutePermissions;
-  }
-}
-
 /*
 |
 |--------------------------------------------------------------------------
@@ -388,7 +382,8 @@ export function middlewareFactory(
 class PermissionController {
   constructor(private requiredPermissions: RoutePermissions) {}
 
-  use = createMiddleware(async (ctx: Context, next: Next) => {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  use = createMiddleware(async (ctx: any, next: Next) => {
     try {
       const myPermissions = ctx.permissions ?? []
 
