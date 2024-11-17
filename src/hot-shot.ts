@@ -21,14 +21,14 @@
 |   - routerContainer : Router Container Function 🔥
 */
 
-import { type Context as HonoContext, Hono, type MiddlewareHandler, type Next } from "hono"
+import { type Context, Hono, type MiddlewareHandler, type Next } from "hono"
 import { createMiddleware } from "hono/factory"
 import { HTTPException } from "hono/http-exception"
 import type { StatusCode } from "hono/utils/http-status"
 
 declare module "hono" {
   interface Context {
-      permissions?: RoutePermissions;
+    permissions?: RoutePermissions;
   }
 }
 
@@ -92,7 +92,7 @@ export function response(
  * @returns A response object containing the error message and status code.
  */
 export function middleWareExceptionResponse(
-  ctx: HonoContext,
+  ctx: Context,
   e: unknown,
 ): Response {
   if (e instanceof Error) {
@@ -112,9 +112,9 @@ export function middleWareExceptionResponse(
  */
 
 export const safeAsync = (
-  func: (ctx: HonoContext) => Promise<ApiResponse> | ApiResponse,
-): ((ctx: HonoContext) => Promise<Response>) => {
-  return async (ctx: HonoContext) => {
+  func: (ctx: Context) => Promise<ApiResponse> | ApiResponse,
+): ((ctx: Context) => Promise<Response>) => {
+  return async (ctx: Context) => {
     try {
       const response = await func(ctx)
       ctx.status(200)
@@ -155,7 +155,7 @@ export type MiddlewareType = new () => UseGuard
 export type RouteDefinition = {
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
   path: string
-  controller: (ctx: HonoContext) => Promise<ApiResponse> | ApiResponse
+  controller: (ctx: Context) => Promise<ApiResponse> | ApiResponse
   useGuards?: MiddlewareType[]
   permissions?: RoutePermissions
 }
@@ -164,7 +164,7 @@ export type RoutePermissions = string[]
 
 export interface RouteBuilder {
   useGuards(...guards: MiddlewareType[]): RouteBuilder
-  controller(handler: (ctx: HonoContext) => Promise<ApiResponse>): RouteDefinition
+  controller(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition
   permissions(...perms: RoutePermissions): RouteBuilder
 }
 
@@ -173,7 +173,7 @@ export interface RouteBuilder {
  *
  * @param {string} method - The HTTP method for the route.
  * @param {string} path - The path for the route.
- * @method {(ctx: HonoContext) => Promise<ApiResponse>} controller - The controller function for the route. Default: () => response("Not Implemented")
+ * @method {(ctx: Context) => Promise<ApiResponse>} controller - The controller function for the route. Default: () => response("Not Implemented")
  * @method useGuards - The middleware guards for the route. Default: []
  * @returns A RouteBuilder object.
  */
@@ -194,7 +194,7 @@ export function route(
       routeDefinition.useGuards?.push(...guards)
       return this
     },
-    controller(handler: (ctx: HonoContext) => Promise<ApiResponse>) {
+    controller(handler: (ctx: Context) => Promise<ApiResponse>) {
       routeDefinition.controller = handler
       return routeDefinition
     },
@@ -353,7 +353,7 @@ export function routerContainer({
 */
 
 export type UseGuard = {
-  use: (ctx: HonoContext, next: Next) => Promise<void>
+  use: (ctx: Context, next: Next) => Promise<void>
 }
 
 /**
@@ -367,7 +367,7 @@ export function middlewareFactory(
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   // biome-ignore lint/complexity/noBannedTypes: <explanation>
 ): MiddlewareHandler<any, string, {}> {
-  return createMiddleware(async (ctx: HonoContext, next: Next) => {
+  return createMiddleware(async (ctx: Context, next: Next) => {
     try {
       await new Middleware().use(ctx, next)
     } catch (error) {
@@ -388,7 +388,7 @@ export function middlewareFactory(
 class PermissionController {
   constructor(private requiredPermissions: RoutePermissions) {}
 
-  use = createMiddleware(async (ctx: HonoContext, next: Next) => {
+  use = createMiddleware(async (ctx: Context, next: Next) => {
     try {
       const myPermissions = ctx.permissions ?? []
 
