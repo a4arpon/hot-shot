@@ -28,10 +28,10 @@ import {${controllerClassName}} from "./controller";
 
 export class ${routerClassName}Router {
     public readonly routes: Hono
-    private readonly ${nameFixer(moduleName,false)}Controller: ${controllerClassName}
+    private readonly ${nameFixer(moduleName, false)}Controller: ${controllerClassName}
 
     constructor() {
-        this.${nameFixer(moduleName,false)}Controller = new ${controllerClassName}()
+        this.${nameFixer(moduleName, false)}Controller = new ${controllerClassName}()
 
         /*
         * ----------------------------------------------------------------
@@ -126,7 +126,6 @@ export class ${middlewareClassName} implements UseGuard {
 export function generateWorkerFile(workerName: string): string {
   const workerClassName = `${nameFixer(workerName, true)}Queue`
 
-
   console.log(`
   ------------------------------------------------------------------------
   Queue Name: ${nameFixer(workerName, false)}Queue
@@ -134,7 +133,7 @@ export function generateWorkerFile(workerName: string): string {
   the queue name ${nameFixer(workerName, false)}Queue in your
   #libs/conn file.
   ------------------------------------------------------------------------
-  `);
+  `)
 
   return `
 import { type Job, Worker } from "bullmq"
@@ -235,7 +234,6 @@ export class ${cacheDriverClassName} {
 `
 }
 
-
 export function generateOpenApiSpecContent(specName: string): string {
   const openAPISpecClassName = `${nameFixer(specName, true)}OpenApiSpecs`
 
@@ -257,7 +255,7 @@ export function generateOpenApiSpecContent(specName: string): string {
     the ZodSchema from the drizzle-orm.
     Doc Link: https://orm.drizzle.team/docs/zod\n
     ------------------------------------------------------------------------
-    `);
+    `)
 
   return `
   import type { ApiSpecs, UseOpenApi } from "#libs/open-api"

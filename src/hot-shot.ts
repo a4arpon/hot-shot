@@ -340,14 +340,18 @@ export type UseGuard = {
  * @param Middleware - The middleware class.
  * @returns A middleware handler function.
  */
-export function middlewareFactory(
-  Middleware: new () => UseGuard,
+export function middlewareFactory<T extends UseGuard>(
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  Middleware: new (...args: any[]) => T,
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  ...args: any[]
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   // biome-ignore lint/complexity/noBannedTypes: <explanation>
 ): MiddlewareHandler<any, string, {}> {
   return createMiddleware(async (ctx: Context, next: Next) => {
     try {
-      await new Middleware().use(ctx, next)
+      const middlewareInstance = new Middleware(...args)
+      await middlewareInstance.use(ctx, next)
     } catch (error) {
       if (error instanceof HTTPException) {
         ctx.status(error.status)

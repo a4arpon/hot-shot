@@ -1,6 +1,14 @@
 import fs from "node:fs"
 import path from "node:path"
 import {
+  generateCacheDriverContentJS,
+  generateControllerFileJS,
+  generateMiddlewareFileJS,
+  generateOpenApiSpecContentJS,
+  generateRouterFileJS,
+  generateWorkerFileJS,
+} from "./mods-contents-js.ts"
+import {
   generateCacheDriverContent,
   generateControllerFile,
   generateMiddlewareFile,
@@ -10,7 +18,6 @@ import {
   generateWorkerFile,
   nameFixer,
 } from "./mods-contents.ts"
-import { generateCacheDriverContentJS, generateControllerFileJS, generateMiddlewareFileJS, generateOpenApiSpecContentJS, generateRouterFileJS, generateWorkerFileJS } from "./mods-contents-js.ts"
 
 export interface HotShotConf {
   projectName: string
@@ -57,8 +64,14 @@ export async function generateModule(moduleName: string) {
 
   const fileExtensions = projectType === "ts" ? ".ts" : ".js"
 
-  const routerContent = fileExtensions ==='.ts'? generateRouterFile(moduleName, fileExtensions) : generateRouterFileJS(moduleName, fileExtensions)
-  const controllerContent =  fileExtensions ==='.ts'? generateControllerFile(moduleName, fileExtensions) : generateControllerFileJS(moduleName, fileExtensions)
+  const routerContent =
+    fileExtensions === ".ts"
+      ? generateRouterFile(moduleName, fileExtensions)
+      : generateRouterFileJS(moduleName, fileExtensions)
+  const controllerContent =
+    fileExtensions === ".ts"
+      ? generateControllerFile(moduleName, fileExtensions)
+      : generateControllerFileJS(moduleName, fileExtensions)
   const servicesContent = generateServicesFile(moduleName)
 
   fs.writeFileSync(
@@ -254,7 +267,10 @@ export async function generateMiddleware(middlewareName: string) {
   const config = JSON.parse(configFileContent)
 
   // Generate Middleware Contents
-  const middlewareContent =  config.projectType ==='ts' ? generateMiddlewareFile(middlewareName) : generateMiddlewareFileJS(middlewareName)
+  const middlewareContent =
+    config.projectType === "ts"
+      ? generateMiddlewareFile(middlewareName)
+      : generateMiddlewareFileJS(middlewareName)
 
   // Create middleware file path
   const middlewareFileName = `${middlewareName}.guard${
@@ -311,7 +327,10 @@ export async function queueWorkerGenerator(workerName: string) {
   const config = JSON.parse(configFileContent)
 
   // Generate Worker Contents
-  const workerContent = config.projectType === "ts" ? generateWorkerFile(workerName) : generateWorkerFileJS(workerName)
+  const workerContent =
+    config.projectType === "ts"
+      ? generateWorkerFile(workerName)
+      : generateWorkerFileJS(workerName)
 
   // Create worker file path
   const workerFileName = `${workerName}.worker${
@@ -365,7 +384,10 @@ export async function generateCacheDriver(cacheDriverName: string) {
   const config = JSON.parse(configFileContent)
 
   // Generate Cache Driver Contents
-  const cacheDriverContent = config.projectType === "ts" ? generateCacheDriverContent(cacheDriverName) : generateCacheDriverContentJS(cacheDriverName)
+  const cacheDriverContent =
+    config.projectType === "ts"
+      ? generateCacheDriverContent(cacheDriverName)
+      : generateCacheDriverContentJS(cacheDriverName)
 
   // Create cache driver file path
   const cacheDriverFileName = `${cacheDriverName}.cache${
@@ -424,7 +446,10 @@ export async function generateOpenApiSpec(specName: string) {
   const config = JSON.parse(configFileContent)
 
   // Generate OpenApi Spec Contents
-  const openApiSpecContent = config.projectType === "ts" ? generateOpenApiSpecContent(specName) : generateOpenApiSpecContentJS(specName)
+  const openApiSpecContent =
+    config.projectType === "ts"
+      ? generateOpenApiSpecContent(specName)
+      : generateOpenApiSpecContentJS(specName)
 
   // Create OpenApi Spec file path
   const openApiSpecFileName = `${specName}.openapi${
