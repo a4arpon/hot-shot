@@ -259,18 +259,21 @@ export function generateOpenApiSpecContent(specName: string): string {
 
   return `
   import type { ApiSpecs, UseOpenApi } from "#libs/open-api"
-  import { z } from "zod"
 
   export class ${openAPISpecClassName} implements UseOpenApi {
     public readonly specs: ApiSpecs[]
 
+    private readonly routeGroup = "${specName}"
+
     constructor() {
       this.specs = [
         {
+          group: this.routeGroup,
           method: "GET",
+          secure: false,
           path: "/${specName}",
-          tags: ["${specName}"],
-          summery: "Get Request",
+          summary: "Get Request",
+          description: "No description...",
         }
       ]
     }

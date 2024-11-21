@@ -39,10 +39,10 @@ codebase modular and maintainable.
 
 ### Copy Starter Kit (Recommended)
 
-Copy the starter kit to your project directory and start coding.
+Copy the [starter kit](https://github.com/a4arpon/hot-shot-kit) to your project directory and start coding.
 
 ```bash
-git clone https://github.com/a4arpon/hot-shot-kit.git && cd hot-shot-kit.git && rm -rf .git && code .
+git clone https://github.com/a4arpon/hot-shot-kit.git && cd hot-shot-kit && rm -rf .git && code .
 ```
 
 I am too lazy to write the documentation for this. So, I recommend you to copy the starter kit to your project directory
