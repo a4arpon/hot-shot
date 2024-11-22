@@ -72,20 +72,20 @@ export async function generateModule(moduleName: string) {
     fileExtensions === ".ts"
       ? generateControllerFile(moduleName, fileExtensions)
       : generateControllerFileJS(moduleName, fileExtensions)
-  const servicesContent = generateServicesFile(moduleName)
+  // const servicesContent = generateServicesFile(moduleName)
 
   fs.writeFileSync(
     path.join(moduleDirPath, `routes${fileExtensions}`),
     routerContent,
   )
   fs.writeFileSync(
-    path.join(moduleDirPath, `controller${fileExtensions}`),
+    path.join(moduleDirPath, `${moduleName}.services${fileExtensions}`),
     controllerContent,
   )
-  fs.writeFileSync(
-    path.join(moduleDirPath, `${moduleName}.services${fileExtensions}`),
-    servicesContent,
-  )
+  // fs.writeFileSync(
+  //   path.join(moduleDirPath, `${moduleName}.services${fileExtensions}`),
+  //   servicesContent,
+  // )
 
   await updateModRegistry(moduleName, moduleDirPath)
   // await updateRouterRegistry(moduleName)
@@ -96,12 +96,12 @@ export async function generateModule(moduleName: string) {
       path.join(moduleDirPath, `routes${fileExtensions}`),
     )}`,
   )
-  console.log(
-    `Created: ${path.relative(
-      process.cwd(),
-      path.join(moduleDirPath, `controller${fileExtensions}`),
-    )}`,
-  )
+  // console.log(
+  //   `Created: ${path.relative(
+  //     process.cwd(),
+  //     path.join(moduleDirPath, `controller${fileExtensions}`),
+  //   )}`,
+  // )
   console.log(
     `Created: ${path.relative(
       process.cwd(),
@@ -174,7 +174,7 @@ async function updateModRegistry(moduleName: string, moduleDirPath: string) {
     type: "router",
     name: moduleName,
     path: `.${moduleDirPath.replace(process.cwd(), "")}`,
-    contains: ["router", "controller", "services"],
+    contains: ["router", "services"],
     services: [`${moduleName}.services`],
   }
 

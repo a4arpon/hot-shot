@@ -18,20 +18,20 @@ export function generateRouterFile(
   _fileExtension: string,
 ): string {
   const routerClassName = nameFixer(moduleName, true)
-  const controllerClassName = `${nameFixer(moduleName, true)}Controller`
+  const controllerClassName = `${nameFixer(moduleName, true)}Services`
   const controllerMethodName = nameFixer(moduleName, false)
 
   return `
 import type {Hono} from "hono";
 import {router, routerContainer, route} from "@a4arpon/hotshot";
-import {${controllerClassName}} from "./controller";
+import {${controllerClassName}} from "./${nameFixer(moduleName, false)}.services";
 
 export class ${routerClassName}Router {
     public readonly routes: Hono
-    private readonly ${nameFixer(moduleName, false)}Controller: ${controllerClassName}
+    private readonly ${nameFixer(moduleName, false)}Services: ${controllerClassName}
 
     constructor() {
-        this.${nameFixer(moduleName, false)}Controller = new ${controllerClassName}()
+        this.${nameFixer(moduleName, false)}Services = new ${controllerClassName}()
 
         /*
         * ----------------------------------------------------------------
@@ -39,17 +39,19 @@ export class ${routerClassName}Router {
         * ------------------------------------------------------------------
         */
         this.routes = routerContainer({
-            basePath: '/${moduleName.toLowerCase()}',
             routers: [this.default()],
         })
     }
 
     default() {
         return router({
-            basePath: '/',
+            basePath: '/${moduleName.toLowerCase()}',
             routes: [
-              route("GET")
-                .controller(this.${nameFixer(moduleName, false)}Controller.${controllerMethodName}),
+              {
+                method: "GET",
+                path:"/"
+                handler: this.${nameFixer(moduleName, false)}Services.${controllerMethodName}
+              }
            ],
         })
     }
@@ -61,27 +63,17 @@ export function generateControllerFile(
   moduleName: string,
   _fileExtension: string,
 ): string {
-  const controllerClassName = `${nameFixer(moduleName, true)}Controller`
+  const controllerClassName = `${nameFixer(moduleName, true)}Services`
   const controllerFileName = nameFixer(moduleName, false)
-  const serviceName = `${nameFixer(moduleName, true)}Services`
-  const serviceMethodName = nameFixer(moduleName, false)
 
   return `
-import type {Context} from "hono";
-import {${serviceName}} from "./${moduleName}.services";
+import { response } from "@a4arpon/hotshot"
+import type { Context } from "hono"
 
 export class ${controllerClassName} {
-    private readonly ${nameFixer(moduleName, false)}Services: ${serviceName}
 
-    constructor() {
-        this.${nameFixer(moduleName, false)}Services = new ${serviceName}()
-    }
-
-    ${controllerFileName} = async (ctx: Context) => {
-        return this.${nameFixer(
-          moduleName,
-          false,
-        )}Services.${serviceMethodName}()
+    async ${controllerFileName}(ctx: Context) {
+      return response("Hi from ${moduleName}!");
     }
 }
 `

@@ -149,16 +149,16 @@ export type MiddlewareType = new () => UseGuard
 export type RouteDefinition = {
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
   path: string
-  controller: (ctx: Context) => Promise<ApiResponse> | ApiResponse
-  useGuards: MiddlewareType[]
+  handler: (ctx: Context) => Promise<ApiResponse> | ApiResponse
+  useGuards?: MiddlewareType[]
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   // biome-ignore lint/complexity/noBannedTypes: <explanation>
-  middlewares: MiddlewareHandler<any, string, {}>[]
+  middlewares?: MiddlewareHandler<any, string, {}>[]
 }
 
 export interface RouteBuilder {
   useGuards(...guards: MiddlewareType[]): RouteBuilder
-  controller(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition
+  handler(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   // biome-ignore lint/complexity/noBannedTypes: <explanation>
   middlewares(...perms: MiddlewareHandler<any, string, {}>[]): RouteBuilder
@@ -178,7 +178,7 @@ export function route(
   const routeDefinition: RouteDefinition = {
       method,
       path: path ?? "/",
-      controller: () => response("Not Implemented"),
+      handler: () => response("Not Implemented"),
       useGuards: [],
       middlewares: [],
   }
@@ -188,8 +188,8 @@ export function route(
        routeDefinition.useGuards?.push(...guards)
        return this
      },
-     controller(handler: (ctx: Context) => Promise<ApiResponse>) {
-       routeDefinition.controller = handler
+     handler(handler: (ctx: Context) => Promise<ApiResponse>) {
+       routeDefinition.handler = handler
        return routeDefinition
      },
      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -230,7 +230,7 @@ export function router({
     const {
       method,
       path,
-      controller,
+      handler,
       useGuards: useGuardsList = [],
       middlewares: rawMiddlewares = [],
     } = routeDefinition
@@ -245,19 +245,19 @@ export function router({
 
     switch (method) {
       case "POST":
-        controllerRoutes.post(path, ...middlewares, safeAsync(controller))
+        controllerRoutes.post(path, ...middlewares, safeAsync(handler))
         break
       case "GET":
-        controllerRoutes.get(path, ...middlewares, safeAsync(controller))
+        controllerRoutes.get(path, ...middlewares, safeAsync(handler))
         break
       case "PUT":
-        controllerRoutes.put(path, ...middlewares, safeAsync(controller))
+        controllerRoutes.put(path, ...middlewares, safeAsync(handler))
         break
       case "DELETE":
-        controllerRoutes.delete(path, ...middlewares, safeAsync(controller))
+        controllerRoutes.delete(path, ...middlewares, safeAsync(handler))
         break
       case "PATCH":
-        controllerRoutes.patch(path, ...middlewares, safeAsync(controller))
+        controllerRoutes.patch(path, ...middlewares, safeAsync(handler))
         break
       default:
         throw new Error(`Unsupported method: ${method}`)
