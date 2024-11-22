@@ -64,6 +64,15 @@ export async function generateModule(moduleName: string) {
 
   const fileExtensions = projectType === "ts" ? ".ts" : ".js"
 
+  // Check for duplicate module name
+  const config = await getConfig()
+  if (config.contains?.mods?.find(
+    (m: { name: string }) => m.name === moduleName,
+  )) {
+    console.error(`Error: Module '${moduleName}' already exists in config.`)
+    return
+  }
+
   const routerContent =
     fileExtensions === ".ts"
       ? generateRouterFile(moduleName, fileExtensions)
@@ -130,6 +139,17 @@ async function checkProjectType(): Promise<"js" | "ts"> {
   // Note: The key in your provided config is actually "projectType" at the root level
   // If you meant to have a "HotshotConf" object, please adjust the key accordingly
   return config.projectType
+}
+
+async function getConfig(): Promise<HotShotConf> {
+  const configPath = path.join(process.cwd(), "hotshot.config.json")
+
+  if (!fs.existsSync(configPath)) {
+    throw new Error("hotshot.config.json not found.")
+  }
+
+  const configFileContent = await fs.promises.readFile(configPath, "utf8")
+  return JSON.parse(configFileContent)
 }
 
 /*

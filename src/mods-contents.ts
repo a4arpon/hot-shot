@@ -23,8 +23,8 @@ export function generateRouterFile(
 
   return `
 import type {Hono} from "hono";
-import {router, routerContainer, route} from "@a4arpon/hotshot";
-import {${controllerClassName}} from "./${nameFixer(moduleName, false)}.services";
+import {router, routerContainer} from "@a4arpon/hotshot";
+import {${controllerClassName}} from "./${moduleName}.services";
 
 export class ${routerClassName}Router {
     public readonly routes: Hono
@@ -49,7 +49,7 @@ export class ${routerClassName}Router {
             routes: [
               {
                 method: "GET",
-                path:"/"
+                path:"/",
                 handler: this.${nameFixer(moduleName, false)}Services.${controllerMethodName}
               }
            ],
