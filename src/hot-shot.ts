@@ -349,7 +349,7 @@ export function routerContainer({
 */
 
 export type UseGuard = {
-  use: (ctx: Context, next: Next) => Promise<void>
+  use: (ctx: Context) => Promise<boolean>
 }
 
 /**
@@ -365,7 +365,10 @@ export function middlewareFactory(
 ): MiddlewareHandler<any, string, {}> {
   return createMiddleware(async (ctx: Context, next: Next) => {
     try {
-      await new Middleware().use(ctx, next)
+      const result = await new Middleware().use(ctx)
+      if (result) {
+        await next()
+      }
     } catch (error) {
       if (error instanceof HTTPException) {
         ctx.status(error.status)
