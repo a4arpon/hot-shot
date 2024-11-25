@@ -102,7 +102,7 @@ import type {Context, Next} from "hono";
 import { HTTPException } from "hono/http-exception"
 
 export class ${middlewareClassName} implements UseGuard {
-  async use(ctx: Context, next: Next) {
+  async use(ctx: Context) {
     if (ctx.req.path === "/${middlewareName.toLowerCase()}-guard") {
       throw new HTTPException(HTTPStatus.BadRequest, {
         message: "You're hitting on a dummy route",
@@ -110,7 +110,7 @@ export class ${middlewareClassName} implements UseGuard {
     }
 
     console.log("${middlewareClassName} Activated On", ctx.req.path);
-    await next();
+    return true;
   }
 }`
 }
