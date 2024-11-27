@@ -176,29 +176,29 @@ export function route(
   path?: string,
 ): RouteBuilder {
   const routeDefinition: RouteDefinition = {
-      method,
-      path: path ?? "/",
-      handler: () => response("Not Implemented"),
-      useGuards: [],
-      middlewares: [],
+    method,
+    path: path ?? "/",
+    handler: () => response("Not Implemented"),
+    useGuards: [],
+    middlewares: [],
   }
 
   return {
-     useGuards(...guards: MiddlewareType[]) {
-       routeDefinition.useGuards?.push(...guards)
-       return this
-     },
-     handler(handler: (ctx: Context) => Promise<ApiResponse>) {
-       routeDefinition.handler = handler
-       return routeDefinition
-     },
-     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-     // biome-ignore lint/complexity/noBannedTypes: <explanation>
-     middlewares(..._middlewares: MiddlewareHandler<any, string, {}>[]) {
-       routeDefinition.middlewares?.push(..._middlewares)
-       return this
-     },
-   }
+    useGuards(...guards: MiddlewareType[]) {
+      routeDefinition.useGuards?.push(...guards)
+      return this
+    },
+    handler(handler: (ctx: Context) => Promise<ApiResponse>) {
+      routeDefinition.handler = handler
+      return routeDefinition
+    },
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    // biome-ignore lint/complexity/noBannedTypes: <explanation>
+    middlewares(..._middlewares: MiddlewareHandler<any, string, {}>[]) {
+      routeDefinition.middlewares?.push(..._middlewares)
+      return this
+    },
+  }
 }
 
 /**

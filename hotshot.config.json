@@ -3,31 +3,6 @@
   "projectType": "ts",
   "contains": {
     "mods": [
-      {
-        "type": "router",
-        "name": "auth",
-        "path": "./src/mods/auth-mod",
-        "contains": [
-          "router",
-          "controller",
-          "services"
-        ],
-        "services": [
-          "auth.services"
-        ]
-      },
-      {
-        "type": "router",
-        "name": "auth",
-        "path": "./src/mods/auth-mod",
-        "contains": [
-          "router",
-          "services"
-        ],
-        "services": [
-          "auth.services"
-        ]
-      }
     ],
     "cacheDrivers": [],
     "queues": [],

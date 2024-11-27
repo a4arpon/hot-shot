@@ -18,30 +18,31 @@ export function generateRouterFile(
   _fileExtension: string,
 ): string {
   const routerClassName = nameFixer(moduleName, true)
-  const controllerClassName = `${nameFixer(moduleName, true)}Services`
+  const controllerClassName = `${nameFixer(moduleName, true)}Controller`
   const controllerMethodName = nameFixer(moduleName, false)
 
   return `
-import type {Hono} from "hono";
-import {router, routerContainer} from "@a4arpon/hotshot";
-import {${controllerClassName}} from "./${moduleName}.services";
+  import type {Hono} from "hono";
+  import {router, routerContainer} from "@a4arpon/hotshot";
+  import {${controllerClassName}} from "./controller";
 
-export class ${routerClassName}Router {
-    public readonly routes: Hono
-    private readonly ${nameFixer(moduleName, false)}Services: ${controllerClassName}
+  export class ${routerClassName}Router {
+      public readonly routes: Hono
+      private readonly ${nameFixer(moduleName, false)}Controller: ${controllerClassName}
 
-    constructor() {
-        this.${nameFixer(moduleName, false)}Services = new ${controllerClassName}()
+      constructor() {
+          this.${nameFixer(moduleName, false)}Controller = new ${controllerClassName}()
 
-        /*
-        * ----------------------------------------------------------------
-        * | Routes Container > It's a group of routers for ${routerClassName}
-        * ------------------------------------------------------------------
-        */
-        this.routes = routerContainer({
-            routers: [this.default()],
-        })
-    }
+          /*
+          * ----------------------------------------------------------------
+          * | Routes Container > It's a group of routers for ${routerClassName}
+          * ------------------------------------------------------------------
+          */
+          this.routes = routerContainer({
+              basePath: '/${moduleName.toLowerCase()}',
+              routers: [this.default()],
+          })
+      }
 
     default() {
         return router({
@@ -50,7 +51,7 @@ export class ${routerClassName}Router {
               {
                 method: "GET",
                 path:"/",
-                handler: this.${nameFixer(moduleName, false)}Services.${controllerMethodName}
+                handler: this.${nameFixer(moduleName, false)}Controller.${controllerMethodName}
               }
            ],
         })
@@ -63,17 +64,27 @@ export function generateControllerFile(
   moduleName: string,
   _fileExtension: string,
 ): string {
-  const controllerClassName = `${nameFixer(moduleName, true)}Services`
+  const controllerClassName = `${nameFixer(moduleName, true)}Controller`
   const controllerFileName = nameFixer(moduleName, false)
+  const serviceName = `${nameFixer(moduleName, true)}Services`
+  const serviceMethodName = nameFixer(moduleName, false)
 
   return `
-import { response } from "@a4arpon/hotshot"
-import type { Context } from "hono"
+import type {Context} from "hono";
+import {${serviceName}} from "./${moduleName}.services";
 
 export class ${controllerClassName} {
+    private readonly ${nameFixer(moduleName, false)}Services: ${serviceName}
 
-    async ${controllerFileName}(ctx: Context) {
-      return response("Hi from ${moduleName}!");
+    constructor() {
+        this.${nameFixer(moduleName, false)}Services = new ${serviceName}()
+    }
+
+    ${controllerFileName} = async (ctx: Context) => {
+        return this.${nameFixer(
+          moduleName,
+          false,
+        )}Services.${serviceMethodName}()
     }
 }
 `
