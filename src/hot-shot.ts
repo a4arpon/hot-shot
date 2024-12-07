@@ -21,24 +21,11 @@
 |   - routerContainer : Router Container Function 🔥
 */
 
-import { type Context, Hono, type MiddlewareHandler, type Next } from "hono"
-import { createMiddleware } from "hono/factory"
-import { HTTPException } from "hono/http-exception"
+import { type Context, Hono } from "hono"
 import type { StatusCode } from "hono/utils/http-status"
-
-/*
-|
-|--------------------------------------------------------------------------
-| Response Related Functions & Types 🔥
-|--------------------------------------------------------------------------
-|
-*/
-export type ApiResponse = {
-  success: boolean
-  message: string
-  meta?: object
-  data: string | number | boolean | object | [] | undefined | null
-}
+import { safeAsync } from "./safe-async"
+import type { ApiResponse, RouteDefinition, RouterOptions } from "./types"
+import { IoC_Container } from "./ioc_container"
 
 /**********************************
  * HTTP Status Codes 🔥
@@ -78,128 +65,6 @@ export function response(
   }
 }
 
-/**
- * Exception Response Middleware Function 🔥
- *
- * @param ctx - The context object for the current request.
- * @param e - The error object to be handled.
- * @returns A response object containing the error message and status code.
- */
-export function middleWareExceptionResponse(
-  ctx: Context,
-  e: unknown,
-): Response {
-  if (e instanceof Error) {
-    ctx.status(HTTPStatus.Unauthorized)
-    return ctx.json(response(e.message, null, {}, false))
-  }
-
-  ctx.status(HTTPStatus.InternalServerError)
-  return ctx.json(response("Internal server error", null, {}, false))
-}
-
-/**
- * Safe Async 🔥 : Promise Wrapper
- *
- * @param func - The function to be wrapped.
- * @returns A function that handles the promise resolution.
- */
-
-export const safeAsync = (
-  func: (ctx: Context) => Promise<ApiResponse> | ApiResponse,
-): ((ctx: Context) => Promise<Response>) => {
-  return async (ctx: Context) => {
-    try {
-      const response = await func(ctx)
-      ctx.status(200)
-      return ctx.json(response)
-    } catch (error) {
-      if (error instanceof HTTPException) {
-        ctx.status(error.status)
-        return ctx.json({
-          success: false,
-          message: error.message,
-          data: null,
-          meta: { status: error.status },
-        })
-      }
-
-      console.error("Internal Server Error. Log : ", error)
-      ctx.status(500)
-      return ctx.json({
-        success: false,
-        message: "Request is not processed by the server.",
-        data: null,
-        meta: { status: 500 },
-      })
-    }
-  }
-}
-
-/*
-|
-|--------------------------------------------------------------------------
-| Router & Route Types 🔥
-|--------------------------------------------------------------------------
-|
-*/
-
-export type MiddlewareType = new () => UseGuard
-
-export type RouteDefinition = {
-  method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
-  path: string
-  handler: (ctx: Context) => Promise<ApiResponse> | ApiResponse
-  useGuards?: MiddlewareType[]
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  // biome-ignore lint/complexity/noBannedTypes: <explanation>
-  middlewares?: MiddlewareHandler<any, string, {}>[]
-}
-
-export interface RouteBuilder {
-  useGuards(...guards: MiddlewareType[]): RouteBuilder
-  handler(handler: (ctx: Context) => Promise<ApiResponse>): RouteDefinition
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  // biome-ignore lint/complexity/noBannedTypes: <explanation>
-  middlewares(...perms: MiddlewareHandler<any, string, {}>[]): RouteBuilder
-}
-
-/**
- * Creates a new route definition.
- *
- * @param {string} method - The HTTP method for the route.
- * @param {string} path - The path for the route.
- * @returns Route bulder function.
- */
-export function route(
-  method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH",
-  path?: string,
-): RouteBuilder {
-  const routeDefinition: RouteDefinition = {
-    method,
-    path: path ?? "/",
-    handler: () => response("Not Implemented"),
-    useGuards: [],
-    middlewares: [],
-  }
-
-  return {
-    useGuards(...guards: MiddlewareType[]) {
-      routeDefinition.useGuards?.push(...guards)
-      return this
-    },
-    handler(handler: (ctx: Context) => Promise<ApiResponse>) {
-      routeDefinition.handler = handler
-      return routeDefinition
-    },
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    // biome-ignore lint/complexity/noBannedTypes: <explanation>
-    middlewares(..._middlewares: MiddlewareHandler<any, string, {}>[]) {
-      routeDefinition.middlewares?.push(..._middlewares)
-      return this
-    },
-  }
-}
 
 /**
  * Creates a new router.
@@ -209,177 +74,58 @@ export function route(
  * @param routeGuard - The route guard for the router.
  * @returns A Hono object.
  */
-export function router({
+export function router<T>({
+  basePath = "/",
+  middlewares = [],
   routes,
-  routeGuards,
-  basePath = null,
-}: {
-  routes: RouteDefinition[]
-  basePath?: string | null
-  routeGuards?: MiddlewareType[]
-}): Hono {
-  const controllerRoutes = new Hono().basePath(basePath ?? "")
+}: RouterOptions<T>): Hono {
+  const honoInstance = new Hono().basePath(basePath ?? "/")
 
-  if (routeGuards) {
-    for (const routeGuard of routeGuards) {
-      controllerRoutes.use(middlewareFactory(routeGuard))
+  if (middlewares.length > 0) {
+    for (let i = 0; i < middlewares?.length; i++) {
+      honoInstance.use(middlewares[i])
     }
   }
 
-  for (const routeDefinition of routes) {
+  for (const route of routes) {
     const {
       method,
       path,
-      handler,
-      useGuards: useGuardsList = [],
-      middlewares: rawMiddlewares = [],
-    } = routeDefinition
+      handler: [Controller, methodName],
+      middlewares: routeMiddlewares = [],
+    } = route
 
-    const middlewares = useGuardsList.map((middleware: MiddlewareType) =>
-      middlewareFactory(middleware),
-    )
+    const controllerInstance = IoC_Container.resolve(Controller)
 
-    if (rawMiddlewares.length > 0) {
-      middlewares.push(...rawMiddlewares)
+    if (typeof controllerInstance[methodName] !== "function") {
+      throw new Error(
+        `Method "${methodName.toString()}" is not defined on "${Controller.name}"`,
+      )
     }
 
+    const handler = controllerInstance[methodName].bind(controllerInstance)
+
     switch (method) {
-      case "POST":
-        controllerRoutes.post(path, ...middlewares, safeAsync(handler))
-        break
       case "GET":
-        controllerRoutes.get(path, ...middlewares, safeAsync(handler))
+        honoInstance.get(path, ...routeMiddlewares, safeAsync(handler))
+        break
+      case "POST":
+        honoInstance.post(path, ...routeMiddlewares, safeAsync(handler))
         break
       case "PUT":
-        controllerRoutes.put(path, ...middlewares, safeAsync(handler))
+        honoInstance.put(path, ...routeMiddlewares, safeAsync(handler))
         break
       case "DELETE":
-        controllerRoutes.delete(path, ...middlewares, safeAsync(handler))
+        honoInstance.delete(path, ...routeMiddlewares, safeAsync(handler))
         break
       case "PATCH":
-        controllerRoutes.patch(path, ...middlewares, safeAsync(handler))
+        honoInstance.patch(path, ...routeMiddlewares, safeAsync(handler))
         break
       default:
         throw new Error(`Unsupported method: ${method}`)
     }
   }
 
-  return controllerRoutes
+  return honoInstance
 }
 
-/*
-|
-|--------------------------------------------------------------------------
-| Route Factory 🔥
-|
-| Router Factory function contains all the application routes
-| and it's used to create a single instance of Hono.
-|--------------------------------------------------------------------------
-|
-*/
-export type RouterConstructor = new () => {
-  routes: Hono
-}
-
-/**
- * Creates a new router factory.
- *
- * @param routers - An array of router constructors.
- * @returns A Hono object.
- */
-export function routerFactory(routers: Array<RouterConstructor>): Hono {
-  const factoryInstance = new Hono()
-
-  for (const RouterClass of routers) {
-    const routerInstance = new RouterClass()
-
-    if (routerInstance.routes === undefined) {
-      throw new Error("Router must have a 'routes' method")
-    }
-
-    factoryInstance.route("/", routerInstance.routes)
-  }
-
-  return factoryInstance
-}
-
-/*
-|
-|--------------------------------------------------------------------------
-| Router Container 🔥
-|
-| Router Container function creates a group of provided routers
-|--------------------------------------------------------------------------
-|
-*/
-
-export type RouterContainerOptions = {
-  basePath?: string
-  routers: Array<Hono>
-}
-
-/**
- * Creates a new router container.
- *
- * @param basePath - The base path for the router container.
- * @param routers - An array of Hono objects.
- * @returns A Hono object.
- */
-export function routerContainer({
-  basePath,
-  routers,
-}: RouterContainerOptions): Hono {
-  const containerInstance = new Hono().basePath(basePath ?? "")
-
-  for (const router of routers) {
-    containerInstance.route("/", router)
-  }
-
-  return containerInstance
-}
-
-/*
-|
-|--------------------------------------------------------------------------
-| Use Guard 🔥
-|
-| Use Guard function is used to add a middleware to a router
-|--------------------------------------------------------------------------
-|
-*/
-
-export type UseGuard = {
-  use: (ctx: Context) => Promise<boolean>
-}
-
-/**
- * Creates a new middleware factory.
- *
- * @param Middleware - The middleware class.
- * @returns A middleware handler function.
- */
-export function middlewareFactory(
-  Middleware: new () => UseGuard,
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  // biome-ignore lint/complexity/noBannedTypes: <explanation>
-): MiddlewareHandler<any, string, {}> {
-  return createMiddleware(async (ctx: Context, next: Next) => {
-    try {
-      const result = await new Middleware().use(ctx)
-      if (result) {
-        await next()
-      }
-    } catch (error) {
-      if (error instanceof HTTPException) {
-        ctx.status(error.status)
-        return ctx.json(response(error.message, null, {}, false))
-      }
-      if (error instanceof Error) {
-        ctx.status(HTTPStatus.Unauthorized)
-        return ctx.json(response(error.message, null, {}, false))
-      }
-      ctx.status(HTTPStatus.BadRequest)
-      return ctx.json(response("Bad Request", null, {}, false))
-    }
-  })
-}
