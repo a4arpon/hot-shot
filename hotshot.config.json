@@ -2,8 +2,7 @@
   "registry": "https://github.com/a4arpon/hot-shot/registry.json",
   "projectType": "ts",
   "contains": {
-    "mods": [
-    ],
+    "mods": [],
     "cacheDrivers": [],
     "queues": [],
     "useGuards": [],

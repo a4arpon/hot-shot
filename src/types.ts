@@ -1,4 +1,4 @@
-import type { MiddlewareHandler } from "hono"
+import type { Context, Hono, MiddlewareHandler } from "hono"
 
 export type ApiResponse = {
   success: boolean
@@ -18,16 +18,20 @@ export type ApiResponse = {
 export type ControllerHandler<T> = [new () => T, keyof T]
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-export interface RouteDefinition<T = any> {
+export interface RouteDefinition {
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
   path: string
-  handler: ControllerHandler<T>
+  handler: (ctx: Context) => Promise<ApiResponse> | ApiResponse
   middlewares?: MiddlewareHandler[]
 }
 
-
-export interface RouterOptions<T> {
+export interface RouterOptions {
   basePath?: string
   middlewares?: MiddlewareHandler[]
-  routes: RouteDefinition<T>[]
+  routes: RouteDefinition[]
+}
+
+export type RouterContainerOptions = {
+  basePath?: string
+  routers: Array<Hono>
 }

@@ -4,9 +4,9 @@ var { getPrototypeOf: ut, defineProperty: I, getOwnPropertyNames: $t } = Object
 var ct = Object.prototype.hasOwnProperty
 var pt = (t, s, n) => {
   n = t != null ? rt(ut(t)) : {}
-  let o =
+  const o =
     s || !t || !t.__esModule ? I(n, "default", { value: t, enumerable: !0 }) : n
-  for (let r of $t(t))
+  for (const r of $t(t))
     if (!ct.call(o, r)) I(o, r, { get: () => t[r], enumerable: !0 })
   return o
 }
@@ -14,7 +14,7 @@ var ht = (t, s) => () => (s || t((s = { exports: {} }).exports, s), s.exports)
 var A = ht((xt, X) => {
   function bt(t, s) {
     var n = t
-    s.slice(0, -1).forEach(function (r) {
+    s.slice(0, -1).forEach((r) => {
       n = n[r] || {}
     })
     var o = s[s.length - 1]
@@ -30,7 +30,7 @@ var A = ht((xt, X) => {
       (s === "constructor" && typeof t[s] === "function") || s === "__proto__"
     )
   }
-  X.exports = function (t, s) {
+  X.exports = (t, s) => {
     if (!s) s = {}
     var n = { bools: {}, strings: {}, unknownFn: null }
     if (typeof s.unknown === "function") n.unknownFn = s.unknown
@@ -39,31 +39,25 @@ var A = ht((xt, X) => {
       []
         .concat(s.boolean)
         .filter(Boolean)
-        .forEach(function (p) {
+        .forEach((p) => {
           n.bools[p] = !0
         })
     var o = {}
     function r(p) {
-      return o[p].some(function (G) {
-        return n.bools[G]
-      })
+      return o[p].some((G) => n.bools[G])
     }
-    Object.keys(s.alias || {}).forEach(function (p) {
+    Object.keys(s.alias || {}).forEach((p) => {
       ;(o[p] = [].concat(s.alias[p])),
-        o[p].forEach(function (G) {
-          o[G] = [p].concat(
-            o[p].filter(function (J) {
-              return G !== J
-            }),
-          )
+        o[p].forEach((G) => {
+          o[G] = [p].concat(o[p].filter((J) => G !== J))
         })
     }),
       []
         .concat(s.string)
         .filter(Boolean)
-        .forEach(function (p) {
+        .forEach((p) => {
           if (((n.strings[p] = !0), o[p]))
-            [].concat(o[p]).forEach(function (G) {
+            [].concat(o[p]).forEach((G) => {
               n.strings[G] = !0
             })
         })
@@ -111,11 +105,11 @@ var A = ht((xt, X) => {
       }
       var i = !n.strings[p] && j(G) ? Number(G) : G
       q(u, p.split("."), i),
-        (o[p] || []).forEach(function (W) {
+        (o[p] || []).forEach((W) => {
           q(u, W.split("."), i)
         })
     }
-    Object.keys(n.bools).forEach(function (p) {
+    Object.keys(n.bools).forEach((p) => {
       T(p, c[p] === void 0 ? !1 : c[p])
     })
     var E = []
@@ -187,10 +181,10 @@ var A = ht((xt, X) => {
       }
     }
     if (
-      (Object.keys(c).forEach(function (p) {
+      (Object.keys(c).forEach((p) => {
         if (!bt(u, p.split(".")))
           q(u, p.split("."), c[p]),
-            (o[p] || []).forEach(function (G) {
+            (o[p] || []).forEach((G) => {
               q(u, G.split("."), c[p])
             })
       }),
@@ -198,7 +192,7 @@ var A = ht((xt, X) => {
     )
       u["--"] = E.slice()
     else
-      E.forEach(function (p) {
+      E.forEach((p) => {
         u._.push(p)
       })
     return u
@@ -208,7 +202,7 @@ var nt = pt(A(), 1)
 import h from "node:fs"
 import S from "node:path"
 function $(t, s = !0) {
-  let o = t
+  const o = t
     .split("-")
     .map((r, c) =>
       c === 0
@@ -219,7 +213,7 @@ function $(t, s = !0) {
   return s ? o.charAt(0).toUpperCase() + o.slice(1) : o
 }
 function O(t, s) {
-  let n = $(t, !0),
+  const n = $(t, !0),
     o = `${$(t, !0)}Controller`,
     r = $(t, !1)
   return `
@@ -254,7 +248,7 @@ export class ${n}Router {
 `
 }
 function M(t, s) {
-  let n = `${$(t, !0)}Controller`,
+  const n = `${$(t, !0)}Controller`,
     o = $(t, !1),
     r = `${$(t, !0)}Services`,
     c = $(t, !1)
@@ -284,7 +278,7 @@ export class ${n} {
 `
 }
 function K(t) {
-  let s = `${$(t, !0)}Guard`
+  const s = `${$(t, !0)}Guard`
   return `
 import { UseGuard, HTTPStatus } from "@a4arpon/hotshot";
 import {Context, Next} from "hono";
@@ -311,7 +305,7 @@ export class ${s} {
 }`
 }
 function P(t) {
-  let s = `${$(t, !0)}Queue`
+  const s = `${$(t, !0)}Queue`
   return `
 import { Worker } from "bullmq"
 import { ${$(t, !1)}Queue, redis } from "#libs/conn"
@@ -533,7 +527,7 @@ function w(t) {
   `
 }
 function Q(t, s = !0) {
-  let o = t
+  const o = t
     .split("-")
     .map((r, c) =>
       c === 0
@@ -544,7 +538,7 @@ function Q(t, s = !0) {
   return s ? o.charAt(0).toUpperCase() + o.slice(1) : o
 }
 function f(t, s) {
-  let n = Q(t, !0),
+  const n = Q(t, !0),
     o = `${Q(t, !0)}Services`,
     r = Q(t, !1)
   return `
@@ -585,7 +579,7 @@ export class ${n}Router {
 `
 }
 function y(t, s) {
-  let n = `${Q(t, !0)}Services`,
+  const n = `${Q(t, !0)}Services`,
     o = Q(t, !1)
   return `
 import { response } from "@a4arpon/hotshot"
@@ -600,7 +594,7 @@ export class ${n} {
 `
 }
 function v(t) {
-  let s = `${Q(t, !0)}Services`,
+  const s = `${Q(t, !0)}Services`,
     n = Q(t, !1)
   return `
 import {response} from "@a4arpon/hotshot";
@@ -613,7 +607,7 @@ export class ${s} {
 `
 }
 function D(t) {
-  let s = `${Q(t, !0)}Guard`
+  const s = `${Q(t, !0)}Guard`
   return `
 import { type UseGuard, HTTPStatus } from "@a4arpon/hotshot";
 import type {Context, Next} from "hono";
@@ -633,7 +627,7 @@ export class ${s} implements UseGuard {
 }`
 }
 function d(t) {
-  let s = `${Q(t, !0)}Queue`
+  const s = `${Q(t, !0)}Queue`
   return (
     console.log(`
   ------------------------------------------------------------------------
@@ -740,7 +734,7 @@ export class ${`${Q(t, !0)}CacheDriver`} {
 `
 }
 function a(t) {
-  let s = `${Q(t, !0)}OpenApiSpecs`
+  const s = `${Q(t, !0)}OpenApiSpecs`
   return (
     console.log(`
     ------------------------------------------------------------------------
@@ -791,7 +785,7 @@ function a(t) {
 }
 async function k(t) {
   console.log("**Step 1: Checking Project Type...**")
-  let s = await it()
+  const s = await it()
   if (
     (console.log(`Project Type: ${s}`),
     console.log("**Step 2: Checking for 'src' Directory...**"),
@@ -800,17 +794,17 @@ async function k(t) {
     console.error("Error: 'src' directory not found."), process.exit(1)
   console.log("Found 'src' directory."),
     console.log("**Step 3: Checking/Creating 'mods' Directory...**")
-  let o = S.join(process.cwd(), "src", "mods")
+  const o = S.join(process.cwd(), "src", "mods")
   await zt(o), console.log("'mods' directory is available.")
-  let r = `${t}-mod`,
+  const r = `${t}-mod`,
     c = S.join(o, r)
   h.mkdirSync(c, { recursive: !0 })
-  let u = s === "ts" ? ".ts" : ".js"
+  const u = s === "ts" ? ".ts" : ".js"
   if ((await Tt()).contains?.mods?.find((E) => E.name === t)) {
     console.error(`Error: Module '${t}' already exists in config.`)
     return
   }
-  let q = u === ".ts" ? f(t, u) : O(t, u),
+  const q = u === ".ts" ? f(t, u) : O(t, u),
     T = u === ".ts" ? y(t, u) : M(t, u)
   h.writeFileSync(S.join(c, `routes${u}`), q),
     h.writeFileSync(S.join(c, `${t}.services${u}`), T),
@@ -823,16 +817,16 @@ async function k(t) {
     )
 }
 async function it() {
-  let t = S.join(process.cwd(), "hotshot.config.json")
+  const t = S.join(process.cwd(), "hotshot.config.json")
   if ((console.log(t), !h.existsSync(t)))
     throw new Error("hotshot.config.json not found.")
-  let s = await h.promises.readFile(t, "utf8")
+  const s = await h.promises.readFile(t, "utf8")
   return JSON.parse(s).projectType
 }
 async function Tt() {
-  let t = S.join(process.cwd(), "hotshot.config.json")
+  const t = S.join(process.cwd(), "hotshot.config.json")
   if (!h.existsSync(t)) throw new Error("hotshot.config.json not found.")
-  let s = await h.promises.readFile(t, "utf8")
+  const s = await h.promises.readFile(t, "utf8")
   return JSON.parse(s)
 }
 async function St() {
@@ -844,7 +838,7 @@ async function zt(t) {
       console.log(`Created 'mods' directory at: ${t}`)
 }
 async function Gt(t, s) {
-  let n = S.join(process.cwd(), "hotshot.config.json"),
+  const n = S.join(process.cwd(), "hotshot.config.json"),
     o = await h.promises.readFile(n, "utf8"),
     r = JSON.parse(o),
     c = {
@@ -857,12 +851,12 @@ async function Gt(t, s) {
   if (!r.contains) r.contains = { mods: [] }
   if (!r.contains.mods) r.contains.mods = []
   r.contains.mods.push(c)
-  let u = JSON.stringify(r, null, 2)
+  const u = JSON.stringify(r, null, 2)
   h.writeFileSync(n, u)
 }
 async function m(t, s) {
   console.log(`Module Name: ${t}`), console.log(`Service Name: ${s}`)
-  let n = S.join(process.cwd(), "hotshot.config.json"),
+  const n = S.join(process.cwd(), "hotshot.config.json"),
     o = await h.promises.readFile(n, "utf8"),
     r = JSON.parse(o),
     c = r.contains?.mods?.find((E) => E.name === t)
@@ -874,18 +868,18 @@ async function m(t, s) {
     console.error(`Error: Service '${s}' already exists in module '${t}'.`)
     return
   }
-  let u = v(s),
+  const u = v(s),
     x = `${s}.services${r.projectType === "ts" ? ".ts" : ".js"}`,
     q = S.join(c.path, x)
   h.writeFileSync(q, u),
     console.log(`Created new service file: ${q}`),
     c.services.push(x.replace(`.${r.projectType}`, ""))
-  let T = JSON.stringify(r, null, 2)
+  const T = JSON.stringify(r, null, 2)
   h.writeFileSync(n, T), console.log("Updated config file with new service.")
 }
 async function g(t) {
   console.log(`UseGuard Name: ${t}`)
-  let s = S.join(process.cwd(), "hotshot.config.json"),
+  const s = S.join(process.cwd(), "hotshot.config.json"),
     n = await h.promises.readFile(s, "utf8"),
     o = JSON.parse(n),
     r = o.projectType === "ts" ? D(t) : K(t),
@@ -908,12 +902,12 @@ async function g(t) {
     name: t,
     path: `./src/use-guards/${c.replace(`.${o.projectType}`, "")}`,
   })
-  let q = JSON.stringify(o, null, 2)
+  const q = JSON.stringify(o, null, 2)
   h.writeFileSync(s, q), console.log("Updated config file with new middleware.")
 }
 async function N(t) {
   console.log(`Worker Name: ${t}`)
-  let s = S.join(process.cwd(), "hotshot.config.json"),
+  const s = S.join(process.cwd(), "hotshot.config.json"),
     n = await h.promises.readFile(s, "utf8"),
     o = JSON.parse(n),
     r = o.projectType === "ts" ? d(t) : P(t),
@@ -938,12 +932,12 @@ async function N(t) {
     name: t,
     path: `./src/queues/${c.replace(`.${o.projectType}`, "")}`,
   })
-  let q = JSON.stringify(o, null, 2)
+  const q = JSON.stringify(o, null, 2)
   h.writeFileSync(s, q), console.log("Updated config file with new worker.")
 }
 async function tt(t) {
   console.log(`Cache Driver Name: ${t}`)
-  let s = S.join(process.cwd(), "hotshot.config.json"),
+  const s = S.join(process.cwd(), "hotshot.config.json"),
     n = await h.promises.readFile(s, "utf8"),
     o = JSON.parse(n),
     r = o.projectType === "ts" ? e(t) : F(t),
@@ -967,13 +961,13 @@ async function tt(t) {
     name: t,
     path: `./src/cache-drivers/${c.replace(`.${o.projectType}`, "")}`,
   })
-  let q = JSON.stringify(o, null, 2)
+  const q = JSON.stringify(o, null, 2)
   h.writeFileSync(s, q),
     console.log("Updated config file with new cache driver.")
 }
 async function st(t) {
   console.log(`OpenApi Spec Name: ${t}`)
-  let s = S.join(process.cwd(), "hotshot.config.json"),
+  const s = S.join(process.cwd(), "hotshot.config.json"),
     n = await h.promises.readFile(s, "utf8"),
     o = JSON.parse(n),
     r = o.projectType === "ts" ? a(t) : w(t),
@@ -996,7 +990,7 @@ async function st(t) {
     name: t,
     path: `./src/open-api/${c.replace(`.${o.projectType}`, "")}`,
   })
-  let q = JSON.stringify(o, null, 2)
+  const q = JSON.stringify(o, null, 2)
   h.writeFileSync(s, q),
     console.log("Updated config file with new OpenApi Spec.")
 }
@@ -1007,7 +1001,7 @@ switch (ot) {
     console.log("Reloading with project type")
     break
   case "g": {
-    let t = B._[1],
+    const t = B._[1],
       s = B._.slice(2)
     switch (t) {
       case "mod": {
@@ -1016,7 +1010,7 @@ switch (ot) {
             "Error: Please specify a module name for 'g mod' command.",
           ),
             process.exit(1)
-        let n = s[0]
+        const n = s[0]
         console.log(`Module name for generation: ${n}`), await k(n)
         break
       }
@@ -1026,7 +1020,7 @@ switch (ot) {
             "Error: Please specify a service name for 'g service' command.",
           ),
             process.exit(1)
-        let n = s[0]
+        const n = s[0]
         if (!B.mod)
           console.error(
             "Error: Please specify a module name using '--mod' for 'g service' command.",
@@ -1041,7 +1035,7 @@ switch (ot) {
             "Error: Please specify a guard name for 'g guard' command.",
           ),
             process.exit(1)
-        let n = s[0]
+        const n = s[0]
         await g(n)
         break
       }
@@ -1051,7 +1045,7 @@ switch (ot) {
             "Error: Please specify a queue name for 'g queue' command.",
           ),
             process.exit(1)
-        let n = s[0]
+        const n = s[0]
         await N(n)
         break
       }
@@ -1061,7 +1055,7 @@ switch (ot) {
             "Error: Please specify a cache driver name for 'g cache' command.",
           ),
             process.exit(1)
-        let n = s[0]
+        const n = s[0]
         await tt(n)
         break
       }
@@ -1071,7 +1065,7 @@ switch (ot) {
             "Error: Please specify an OpenApi Spec name for 'g openapi' command.",
           ),
             process.exit(1)
-        let n = s[0]
+        const n = s[0]
         await st(n)
         break
       }

@@ -1,6 +1,6 @@
 {
   "name": "@a4arpon/hotshot",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "exports": "./src/hot-shot.ts",
   "license": "MIT"
 }

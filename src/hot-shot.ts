@@ -21,11 +21,14 @@
 |   - routerContainer : Router Container Function 🔥
 */
 
-import { type Context, Hono } from "hono"
+import { Hono } from "hono"
 import type { StatusCode } from "hono/utils/http-status"
 import { safeAsync } from "./safe-async"
-import type { ApiResponse, RouteDefinition, RouterOptions } from "./types"
-import { IoC_Container } from "./ioc_container"
+import type {
+  ApiResponse,
+  RouterContainerOptions,
+  RouterOptions,
+} from "./types"
 
 /**********************************
  * HTTP Status Codes 🔥
@@ -65,7 +68,6 @@ export function response(
   }
 }
 
-
 /**
  * Creates a new router.
  *
@@ -74,11 +76,11 @@ export function response(
  * @param routeGuard - The route guard for the router.
  * @returns A Hono object.
  */
-export function router<T>({
+export function router({
   basePath = "/",
   middlewares = [],
   routes,
-}: RouterOptions<T>): Hono {
+}: RouterOptions): Hono {
   const honoInstance = new Hono().basePath(basePath ?? "/")
 
   if (middlewares.length > 0) {
@@ -88,22 +90,7 @@ export function router<T>({
   }
 
   for (const route of routes) {
-    const {
-      method,
-      path,
-      handler: [Controller, methodName],
-      middlewares: routeMiddlewares = [],
-    } = route
-
-    const controllerInstance = IoC_Container.resolve(Controller)
-
-    if (typeof controllerInstance[methodName] !== "function") {
-      throw new Error(
-        `Method "${methodName.toString()}" is not defined on "${Controller.name}"`,
-      )
-    }
-
-    const handler = controllerInstance[methodName].bind(controllerInstance)
+    const { method, path, handler, middlewares: routeMiddlewares = [] } = route
 
     switch (method) {
       case "GET":
@@ -129,3 +116,15 @@ export function router<T>({
   return honoInstance
 }
 
+export const routerContainer = ({
+  basePath,
+  routers,
+}: RouterContainerOptions): Hono => {
+  const containerInstance = new Hono().basePath(basePath ?? "")
+
+  for (let i = 0; i < routers?.length; i++) {
+    containerInstance.route("/", routers[i])
+  }
+
+  return containerInstance
+}
