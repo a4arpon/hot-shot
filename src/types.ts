@@ -17,7 +17,6 @@ export type ApiResponse = {
 
 export type ControllerHandler<T> = [new () => T, keyof T]
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export interface RouteDefinition {
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
   path: string

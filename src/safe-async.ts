@@ -24,7 +24,11 @@ export const safeAsync = (
           success: false,
           message: error.message,
           data: null,
-          meta: { status: error.status },
+          meta: {
+            status: error?.status,
+            cause: error?.cause ?? null,
+            stack: error?.stack ?? null,
+          },
         })
       }
 
