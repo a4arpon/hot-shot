@@ -27,7 +27,7 @@ export const safeAsync = (
           meta: {
             status: error?.status,
             cause: error?.cause ?? null,
-            stack: error?.stack ?? null,
+            stack: process.env.NODE_ENV === "production" ? null : error?.stack,
           },
         })
       }
