@@ -22,7 +22,7 @@
 */
 
 import { Hono } from "hono"
-import type { StatusCode } from "hono/utils/http-status"
+import type { ContentfulStatusCode } from "hono/utils/http-status"
 import { safeAsync } from "./safe-async"
 import type {
   ApiResponse,
@@ -34,15 +34,15 @@ import type {
  * HTTP Status Codes 🔥
  * ********************************/
 export const HTTPStatus = {
-  OK: 200 as StatusCode, // OK (Successful)
-  MovedPermanently: 301 as StatusCode, // Moved Permanently (Redirection)
-  BadRequest: 400 as StatusCode, // Bad Request (Client Error)
-  Unauthorized: 401 as StatusCode, // Unauthorized (Client Error)
-  Forbidden: 403 as StatusCode, // Forbidden (Client Error)
-  NotFound: 404 as StatusCode, // Not Found (Client Error)
-  Conflict: 409 as StatusCode, // Conflict (Client Error)
-  InternalServerError: 500 as StatusCode, // Internal Server Error (Server Error)
-  ServiceUnavailable: 503 as StatusCode, // Service Unavailable (Server Error)
+  OK: 200 as ContentfulStatusCode, // OK (Successful)
+  MovedPermanently: 301 as ContentfulStatusCode, // Moved Permanently (Redirection)
+  BadRequest: 400 as ContentfulStatusCode, // Bad Request (Client Error)
+  Unauthorized: 401 as ContentfulStatusCode, // Unauthorized (Client Error)
+  Forbidden: 403 as ContentfulStatusCode, // Forbidden (Client Error)
+  NotFound: 404 as ContentfulStatusCode, // Not Found (Client Error)
+  Conflict: 409 as ContentfulStatusCode, // Conflict (Client Error)
+  InternalServerError: 500 as ContentfulStatusCode, // Internal Server Error (Server Error)
+  ServiceUnavailable: 503 as ContentfulStatusCode, // Service Unavailable (Server Error)
 }
 
 /**********************************
